@@ -1,5 +1,4 @@
 import type { Settings, Stats } from "./model.ts";
-import UPNG from "upng-js";
 
 const esc = (s: string) =>
   s.replace(
@@ -18,20 +17,27 @@ const rect = (x: number, y: number, w: number, h: number, c: string) =>
 export function barSvg(
   s: Stats,
   settings: Settings,
-  options: { numbers?: boolean; segmented?: boolean; name?: string } = {},
+  options: {
+    numbers?: boolean;
+    segmented?: boolean;
+    name?: string;
+    decayStage?: number;
+  } = {},
 ): string {
   const p = s.maxHp > 0 ? Math.min(1, Math.max(0, s.hp / s.maxHp)) : 0;
-  const stage = settings.decay
-    ? p === 0
-      ? 4
-      : p <= 0.25
-        ? 3
-        : p <= 0.5
-          ? 2
-          : p < 1
-            ? 1
-            : 0
-    : 0;
+  const stage =
+    options.decayStage ??
+    (settings.decay
+      ? p === 0
+        ? 4
+        : p <= 0.25
+          ? 3
+          : p <= 0.5
+            ? 2
+            : p < 1
+              ? 1
+              : 0
+      : 0);
   const top = options.name ? 14 : 0;
   let shape =
     '<path fill="#080c0e" d="M10 4h5V2h7v3h9v3h9V6h12v3h10V5h10v3h12V4h10v4h13V3h10v5h13V5h10v3h13V2h10v6h12V4h10v4h13V5h12v4h12v5h6v20h-5v5h-9v4h-12v-3h-13v4h-12v-4h-13v3h-12v-3h-13v4h-12v-4h-13v3h-12v-4h-13v4h-12v-3H75v4H63v-4H51v-2H39v4h-9v4H14v-4H8v-7H3V16h4V8h3z"/>';
@@ -98,68 +104,3 @@ export function barSvg(
 }
 export const svgUrl = (svg: string) =>
   `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
-export interface RasterTile {
-  url: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-// Owlbear validates image.url at 2,048 characters, including local images.
-export const MAX_IMAGE_URL_LENGTH = 2048;
-export const RASTER_WIDTH = 464;
-const cache = new Map<string, RasterTile[]>();
-export async function rasterize(svg: string): Promise<RasterTile[]> {
-  const cached = cache.get(svg);
-  if (cached) return cached;
-  const img = new Image();
-  img.src = svgUrl(svg);
-  await img.decode();
-  const c = document.createElement("canvas");
-  c.width = RASTER_WIDTH;
-  c.height = Math.round((img.naturalHeight * RASTER_WIDTH) / img.naturalWidth);
-  const ctx = c.getContext("2d");
-  if (!ctx) throw new Error("Canvas is unavailable");
-  ctx.imageSmoothingEnabled = false;
-  ctx.drawImage(img, 0, 0, c.width, c.height);
-  const tiles: RasterTile[] = [];
-  const tileCanvas = document.createElement("canvas");
-  const tileContext = tileCanvas.getContext("2d");
-  if (!tileContext) throw new Error("Canvas is unavailable");
-  function split(x: number, y: number, width: number, height: number) {
-    tileCanvas.width = width;
-    tileCanvas.height = height;
-    tileContext!.imageSmoothingEnabled = false;
-    tileContext!.drawImage(c, x, y, width, height, 0, 0, width, height);
-    // Lossless indexed PNG substantially reduces both URLs and scene item count.
-    const rgba = tileContext!.getImageData(0, 0, width, height).data;
-    const png = new Uint8Array(
-      UPNG.encode([rgba.buffer as ArrayBuffer], width, height, 0),
-    );
-    let binary = "";
-    for (const byte of png) binary += String.fromCharCode(byte);
-    const url = `data:image/png;base64,${btoa(binary)}`;
-    if (url.length <= MAX_IMAGE_URL_LENGTH) {
-      tiles.push({ url, x, y, width, height });
-    } else {
-      // Separate text rows from flat-color stone before dividing horizontally.
-      if (height > 64 || width <= 1) {
-        if (height <= 1)
-          throw new Error("Image pixel exceeds Owlbear's URL limit");
-        const top = Math.floor(height / 2);
-        split(x, y, width, top);
-        split(x, y + top, width, height - top);
-        return;
-      }
-      if (width <= 1)
-        throw new Error("Image column exceeds Owlbear's URL limit");
-      const left = Math.floor(width / 2);
-      split(x, y, left, height);
-      split(x + left, y, width - left, height);
-    }
-  }
-  split(0, 0, c.width, c.height);
-  if (cache.size > 128) cache.delete(cache.keys().next().value!);
-  cache.set(svg, tiles);
-  return tiles;
-}

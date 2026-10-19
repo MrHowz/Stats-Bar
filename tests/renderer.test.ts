@@ -1,3 +1,4 @@
+import { barSvg } from "../src/art.ts";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import type SDK from "@owlbear-rodeo/sdk";
@@ -104,12 +105,23 @@ function fixture() {
     );
     return proxy;
   }) as typeof ImageFactory;
-  const renderer = createRenderer(api, builder, async (svg) => {
-    rendered.push(svg);
-    return [
-      { url: `render:${rendered.length}`, x: 0, y: 0, width: 464, height: 120 },
-    ];
-  });
+  const renderer = createRenderer(
+    api,
+    builder,
+    async (stats, settings, options) => {
+      rendered.push(barSvg(stats, settings, options));
+      return [
+        {
+          key: "frame",
+          url: `render:${rendered.length}`,
+          x: 0,
+          y: 0,
+          width: 464,
+          height: 120,
+        },
+      ];
+    },
+  );
   return {
     renderer,
     getItems: () => items,
@@ -178,7 +190,7 @@ test("closing a scene while rendering discards pending overlays", async () => {
   const renderer = createRenderer(f.api, f.builder, async () => {
     started();
     await gate;
-    return [{ url: "png", x: 0, y: 0, width: 464, height: 120 }];
+    return [{ key: "frame", url: "png", x: 0, y: 0, width: 464, height: 120 }];
   });
   renderer.setReady(true);
   const flush = renderer.flushNow();
@@ -195,7 +207,14 @@ test("tiled bars reuse matching pieces, remove obsolete pieces and migrate legac
   const renderer = createRenderer(f.api, f.builder, async () => {
     let x = 0;
     return widths.map((width) => {
-      const tile = { url: `png:${width}`, x, y: 0, width, height: 120 };
+      const tile = {
+        key: `part-${x}`,
+        url: `png:${width}`,
+        x,
+        y: 0,
+        width,
+        height: 120,
+      };
       x += width;
       return tile;
     });
@@ -212,7 +231,7 @@ test("tiled bars reuse matching pieces, remove obsolete pieces and migrate legac
   assert.ok(!f.getLocal().some((item) => item.id === "legacy-bar"));
   const first = f.getLocal()[0];
   const second = f.getLocal()[1] as Image;
-  assert.equal(second.position.x - first.position.x, 112.5);
+  assert.equal(second.position.x - first.position.x, 56.25);
   assert.equal(second.position.y, first.position.y);
   widths = [116, 116, 116, 116];
   (f.getItems()[0].metadata[STAT_KEY] as { hp: number }).hp--;

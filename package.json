@@ -1,31 +1,33 @@
 {
   "name": "pixel-statbar",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "dev:https": "vite --host 127.0.0.1 --mode https",
-    "build": "tsc --noEmit && vite build",
+    "build": "node scripts/build-art.mjs && tsc --noEmit && vite build",
     "preview": "vite preview --host 127.0.0.1",
     "test": "node --experimental-strip-types --test tests/*.test.ts",
-    "lint": "oxlint src"
+    "lint": "oxlint src",
+    "predev": "node scripts/build-art.mjs",
+    "predev:https": "node scripts/build-art.mjs",
+    "pretest": "node scripts/build-art.mjs"
   },
   "dependencies": {
     "@owlbear-rodeo/sdk": "^3.1.0",
     "react": "^19.2.8",
-    "react-dom": "^19.2.8",
-    "upng-js": "^2.1.0"
+    "react-dom": "^19.2.8"
   },
   "devDependencies": {
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
-    "@types/upng-js": "^2.1.5",
     "@vitejs/plugin-basic-ssl": "^2.3.0",
     "@vitejs/plugin-react": "^6.0.4",
     "oxlint": "^1.75.0",
     "prettier": "^3.9.10",
+    "sharp": "^0.35.5",
     "typescript": "~6.0.2",
     "vite": "^8.2.0"
   }

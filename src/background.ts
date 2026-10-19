@@ -1,8 +1,10 @@
 import OBR, { buildImage } from "@owlbear-rodeo/sdk";
 import { ID } from "./model";
-import { rasterize } from "./art";
+import { hostedBarParts } from "./hosted-art";
 import { createRenderer } from "./renderer";
-const renderer = createRenderer(OBR, buildImage, rasterize);
+const renderer = createRenderer(OBR, buildImage, (stats, settings, options) =>
+  hostedBarParts(stats, settings, options, location.origin),
+);
 OBR.onReady(() => {
   void OBR.contextMenu
     .create({

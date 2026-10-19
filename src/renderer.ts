@@ -9,14 +9,20 @@ import {
   isToken,
   readSettings,
   readStats,
+  type Stats,
+  type Settings,
 } from "./model.ts";
-import { barSvg, MAX_IMAGE_URL_LENGTH, RASTER_WIDTH } from "./art.ts";
-import type { RasterTile } from "./art.ts";
+import { ART_WIDTH } from "./hosted-art.ts";
+import type { BarPart } from "./hosted-art.ts";
 
 export function createRenderer(
   OBR: typeof SDK,
   buildImage: typeof ImageFactory,
-  rasterize: (svg: string) => Promise<RasterTile[]>,
+  makeParts: (
+    stats: Stats,
+    settings: Settings,
+    options: { numbers: boolean; segmented: boolean; name?: string },
+  ) => BarPart[] | Promise<BarPart[]>,
 ) {
   let active = false,
     epoch = 0,
@@ -71,11 +77,11 @@ export function createRenderer(
         continue;
       const stats = displayStats(raw, mode, settings.segments);
       const name = settings.showNames ? stats.name || token.name : undefined;
-      const svg = barSvg(stats, settings, {
+      const options = {
         numbers: mode === "full" && settings.showNumbers,
         segmented: mode === "bar",
         name,
-      });
+      };
       // Bounds include token transforms, so a rotated or mirrored token stays aligned.
       const transformKey = JSON.stringify([
         token.position,
@@ -104,7 +110,9 @@ export function createRenderer(
             : bounds.max.y + settings.offset,
       };
       const signature = JSON.stringify([
-        svg,
+        stats,
+        settings,
+        options,
         position,
         width,
         dpi,
@@ -118,18 +126,17 @@ export function createRenderer(
         existingParts.forEach((part) => keep.add(part.id));
         continue;
       }
-      const tiles = await rasterize(svg);
+      const tiles = await makeParts(stats, settings, options);
       if (!active || epoch !== generation) return;
       for (const tile of tiles) {
-        if (tile.url.length > MAX_IMAGE_URL_LENGTH)
+        if (tile.url.length > 2048)
           throw new Error("Image URL exceeds Owlbear's 2048-character limit");
         const existing = existingParts.find((part) => {
           const metadata = part.metadata[OVERLAY_KEY];
           return (
             typeof metadata === "object" &&
             metadata !== null &&
-            (metadata as { x?: number }).x === tile.x &&
-            (metadata as { y?: number }).y === tile.y
+            (metadata as { part?: string }).part === tile.key
           );
         });
         if (existing) keep.add(existing.id);
@@ -145,16 +152,34 @@ export function createRenderer(
           .name("Pixel Statbar")
           .layer("ATTACHMENT")
           .position({
-            x: position.x + (tile.x * width) / RASTER_WIDTH,
-            y: position.y + (tile.y * width) / RASTER_WIDTH,
+            x: position.x + (tile.x * width) / ART_WIDTH,
+            y: position.y + (tile.y * width) / ART_WIDTH,
           })
-          .scale({ x: width / RASTER_WIDTH, y: width / RASTER_WIDTH })
+          .scale({ x: width / ART_WIDTH, y: width / ART_WIDTH })
+          .zIndex(tile.text ? 2 : tile.key === "segments" ? 1 : 0)
+          .textItemType("TEXT")
+          .textType("PLAIN")
+          .plainText(tile.text ?? "")
+          .textWidth(tile.width)
+          .textHeight(tile.height)
+          .textPadding(0)
+          .fontFamily(tile.key === "name" ? "sans-serif" : "monospace")
+          .fontSize(tile.fontSize ?? 32)
+          .fontWeight(700)
+          .textLineHeight(1)
+          .textAlign("CENTER")
+          .textAlignVertical("MIDDLE")
+          .textFillColor(tile.color ?? "#fff8ec")
+          .textFillOpacity(1)
+          .textStrokeColor("#10171a")
+          .textStrokeOpacity(1)
+          .textStrokeWidth(tile.key === "hp" || tile.key === "name" ? 4 : 0)
           .locked(true)
           .disableHit(true)
           .attachedTo(token.id)
           .disableAttachmentBehavior(["ROTATION", "SCALE", "COPY"])
           .visible(token.visible)
-          .metadata({ [OVERLAY_KEY]: { x: tile.x, y: tile.y } })
+          .metadata({ [OVERLAY_KEY]: { part: tile.key } })
           .build();
         if (existing) {
           const replacement = { ...item, id: existing.id };
