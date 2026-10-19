@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" />
+  <title>Pixel Statbar raster regression</title>
+  <style>
+    body {
+      background: #182322;
+      color: #eee;
+      font: 16px monospace;
+      padding: 24px;
+    }
+    img {
+      width: 464px;
+    }
+    pre {
+      white-space: pre-wrap;
+    }
+  </style>
+  <h1>Pixel Statbar image URL regression</h1>
+  <pre id="result">Running…</pre>
+  <div id="images"></div>
+  <script type="module">
+    import {
+      barSvg,
+      rasterize,
+      svgUrl,
+      MAX_IMAGE_URL_LENGTH,
+      RASTER_WIDTH,
+    } from "/src/art.ts";
+    import { DEFAULT_STATS, DEFAULT_SETTINGS } from "/src/model.ts";
+    const output = document.querySelector("#result");
+    try {
+      const lines = [];
+      for (const hp of [100, 75, 50, 25, 1, 0]) {
+        for (const named of [false, true]) {
+          const stats = {
+            ...DEFAULT_STATS,
+            hp,
+            maxHp: 100,
+            tempHp: named ? 99999 : 0,
+            ac: named ? 99999 : 0,
+          };
+          const svg = barSvg(stats, DEFAULT_SETTINGS, {
+            name: named ? "ตัวละครทดสอบ & <Knight> ♥" : undefined,
+          });
+          const source = new Image();
+          source.src = svgUrl(svg);
+          await source.decode();
+          const original = document.createElement("canvas");
+          original.width = RASTER_WIDTH;
+          original.height = Math.round(
+            (source.naturalHeight * RASTER_WIDTH) / source.naturalWidth,
+          );
+          original.getContext("2d").imageSmoothingEnabled = false;
+          original
+            .getContext("2d")
+            .drawImage(source, 0, 0, original.width, original.height);
+          const before = original.toDataURL("image/png").length;
+          const tiles = await rasterize(svg);
+          const combined = document.createElement("canvas");
+          combined.width = original.width;
+          combined.height = original.height;
+          const coverage = new Uint8Array(original.width * original.height);
+          for (const tile of tiles) {
+            if (tile.url.length > MAX_IMAGE_URL_LENGTH)
+              throw Error("URL limit exceeded");
+            for (let y = tile.y; y < tile.y + tile.height; y++)
+              for (let x = tile.x; x < tile.x + tile.width; x++) {
+                if (
+                  x < 0 ||
+                  y < 0 ||
+                  x >= original.width ||
+                  y >= original.height
+                )
+                  throw Error("Tile outside image");
+                if (coverage[y * original.width + x]++)
+                  throw Error("Overlapping tiles");
+              }
+            const img = new Image();
+            img.src = tile.url;
+            await img.decode();
+            if (
+              img.naturalWidth !== tile.width ||
+              img.naturalHeight !== tile.height
+            )
+              throw Error("Invalid tile dimensions");
+            combined.getContext("2d").drawImage(img, tile.x, tile.y);
+          }
+          if (coverage.some((value) => value !== 1))
+            throw Error("Incomplete bar");
+          const a = original
+            .getContext("2d")
+            .getImageData(0, 0, original.width, original.height).data;
+          const b = combined
+            .getContext("2d")
+            .getImageData(0, 0, original.width, original.height).data;
+          if (a.some((value, i) => value !== b[i]))
+            throw Error("Pixel mismatch");
+          const max = Math.max(...tiles.map((tile) => tile.url.length));
+          lines.push(
+            `PASS HP=${hp} name=${named}: ${before} -> max ${max} chars, ${tiles.length} pieces, identical pixels`,
+          );
+          if (hp === 50) {
+            const preview = new Image();
+            preview.src = combined.toDataURL();
+            document.querySelector("#images").append(preview);
+          }
+        }
+      }
+      output.textContent = `12 / 12 PASS\n${lines.join("\n")}`;
+    } catch (error) {
+      output.textContent = `FAIL: ${error.stack}`;
+    }
+  </script>
+</html>

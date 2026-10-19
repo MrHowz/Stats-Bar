@@ -62,6 +62,9 @@ function fixture() {
       local: {
         getItems: async () => structuredClone(local),
         addItems: async (values: Item[]) => {
+          for (const value of values) {
+            assert.ok((value as Image).image.url.length <= 2048);
+          }
           adds += values.length;
           local.push(...values);
         },
@@ -103,7 +106,9 @@ function fixture() {
   }) as typeof ImageFactory;
   const renderer = createRenderer(api, builder, async (svg) => {
     rendered.push(svg);
-    return `render:${rendered.length}`;
+    return [
+      { url: `render:${rendered.length}`, x: 0, y: 0, width: 464, height: 120 },
+    ];
   });
   return {
     renderer,
@@ -173,7 +178,7 @@ test("closing a scene while rendering discards pending overlays", async () => {
   const renderer = createRenderer(f.api, f.builder, async () => {
     started();
     await gate;
-    return "png";
+    return [{ url: "png", x: 0, y: 0, width: 464, height: 120 }];
   });
   renderer.setReady(true);
   const flush = renderer.flushNow();
@@ -182,4 +187,45 @@ test("closing a scene while rendering discards pending overlays", async () => {
   release();
   await flush;
   assert.equal(f.getLocal().length, 0);
+});
+
+test("tiled bars reuse matching pieces, remove obsolete pieces and migrate legacy overlays", async () => {
+  const f = fixture();
+  let widths = [232, 232];
+  const renderer = createRenderer(f.api, f.builder, async () => {
+    let x = 0;
+    return widths.map((width) => {
+      const tile = { url: `png:${width}`, x, y: 0, width, height: 120 };
+      x += width;
+      return tile;
+    });
+  });
+  f.getLocal().push({
+    id: "legacy-bar",
+    type: "IMAGE",
+    attachedTo: "token",
+    metadata: { [OVERLAY_KEY]: true },
+  } as Item);
+  renderer.setReady(true);
+  await renderer.flushNow();
+  assert.equal(f.getLocal().length, 2);
+  assert.ok(!f.getLocal().some((item) => item.id === "legacy-bar"));
+  const first = f.getLocal()[0];
+  const second = f.getLocal()[1] as Image;
+  assert.equal(second.position.x - first.position.x, 112.5);
+  assert.equal(second.position.y, first.position.y);
+  widths = [116, 116, 116, 116];
+  (f.getItems()[0].metadata[STAT_KEY] as { hp: number }).hp--;
+  await renderer.flushNow();
+  assert.equal(f.getLocal().length, 4);
+  assert.equal(f.getLocal()[0].id, first.id);
+  widths = [464];
+  (f.getItems()[0].metadata[STAT_KEY] as { hp: number }).hp--;
+  await renderer.flushNow();
+  assert.equal(f.getLocal().length, 1);
+  assert.equal(f.getLocal()[0].id, first.id);
+  f.deleteToken();
+  await renderer.flushNow();
+  assert.equal(f.getLocal().length, 0);
+  renderer.setReady(false);
 });

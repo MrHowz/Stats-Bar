@@ -1,6 +1,6 @@
 {
   "name": "Pixel Statbar",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "manifest_version": 1,
   "description": "Pixel stone health bars with HP, temporary HP, AC, inline math and GM visibility controls.",
   "icon": "/icon.svg",

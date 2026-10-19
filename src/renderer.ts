@@ -10,12 +10,13 @@ import {
   readSettings,
   readStats,
 } from "./model.ts";
-import { barSvg } from "./art.ts";
+import { barSvg, MAX_IMAGE_URL_LENGTH, RASTER_WIDTH } from "./art.ts";
+import type { RasterTile } from "./art.ts";
 
 export function createRenderer(
   OBR: typeof SDK,
   buildImage: typeof ImageFactory,
-  rasterize: (svg: string) => Promise<string>,
+  rasterize: (svg: string) => Promise<RasterTile[]>,
 ) {
   let active = false,
     epoch = 0,
@@ -49,7 +50,13 @@ export function createRenderer(
     if (!active || epoch !== generation) return;
     const settings = readSettings(room[SETTINGS_KEY], scene[SETTINGS_KEY]);
     const overlays = local.filter((i) => i.metadata[OVERLAY_KEY]) as OBRImage[];
-    const byToken = new Map(overlays.map((i) => [i.attachedTo, i]));
+    const byToken = new Map<string, OBRImage[]>();
+    for (const overlay of overlays) {
+      const key = overlay.attachedTo ?? "";
+      const parts = byToken.get(key) ?? [];
+      parts.push(overlay);
+      byToken.set(key, parts);
+    }
     const keep = new Set<string>(),
       add: Item[] = [],
       updates: OBRImage[] = [];
@@ -103,40 +110,60 @@ export function createRenderer(
         dpi,
         token.visible,
       ]);
-      const existing = byToken.get(token.id);
-      if (existing) {
-        keep.add(existing.id);
-        if (signatures.get(existing.id) === signature) continue;
+      const existingParts = byToken.get(token.id) ?? [];
+      if (
+        existingParts.length &&
+        existingParts.every((part) => signatures.get(part.id) === signature)
+      ) {
+        existingParts.forEach((part) => keep.add(part.id));
+        continue;
       }
-      const imageUrl = await rasterize(svg);
+      const tiles = await rasterize(svg);
       if (!active || epoch !== generation) return;
-      const item = buildImage(
-        {
-          url: imageUrl,
-          mime: "image/png",
-          width: 928,
-          height: (name ? 74 : 60) * 4,
-        },
-        { dpi, offset: { x: 0, y: 0 } },
-      )
-        .name("Pixel Statbar")
-        .layer("ATTACHMENT")
-        .position(position)
-        .scale({ x: width / 928, y: width / 928 })
-        .locked(true)
-        .disableHit(true)
-        .attachedTo(token.id)
-        .disableAttachmentBehavior(["ROTATION", "SCALE", "COPY"])
-        .visible(token.visible)
-        .metadata({ [OVERLAY_KEY]: true })
-        .build();
-      if (existing) {
-        const replacement = { ...item, id: existing.id };
-        updates.push(replacement);
-        signatures.set(existing.id, signature);
-      } else {
-        add.push(item);
-        signatures.set(item.id, signature);
+      for (const tile of tiles) {
+        if (tile.url.length > MAX_IMAGE_URL_LENGTH)
+          throw new Error("Image URL exceeds Owlbear's 2048-character limit");
+        const existing = existingParts.find((part) => {
+          const metadata = part.metadata[OVERLAY_KEY];
+          return (
+            typeof metadata === "object" &&
+            metadata !== null &&
+            (metadata as { x?: number }).x === tile.x &&
+            (metadata as { y?: number }).y === tile.y
+          );
+        });
+        if (existing) keep.add(existing.id);
+        const item = buildImage(
+          {
+            url: tile.url,
+            mime: "image/png",
+            width: tile.width,
+            height: tile.height,
+          },
+          { dpi, offset: { x: 0, y: 0 } },
+        )
+          .name("Pixel Statbar")
+          .layer("ATTACHMENT")
+          .position({
+            x: position.x + (tile.x * width) / RASTER_WIDTH,
+            y: position.y + (tile.y * width) / RASTER_WIDTH,
+          })
+          .scale({ x: width / RASTER_WIDTH, y: width / RASTER_WIDTH })
+          .locked(true)
+          .disableHit(true)
+          .attachedTo(token.id)
+          .disableAttachmentBehavior(["ROTATION", "SCALE", "COPY"])
+          .visible(token.visible)
+          .metadata({ [OVERLAY_KEY]: { x: tile.x, y: tile.y } })
+          .build();
+        if (existing) {
+          const replacement = { ...item, id: existing.id };
+          updates.push(replacement);
+          signatures.set(existing.id, signature);
+        } else {
+          add.push(item);
+          signatures.set(item.id, signature);
+        }
       }
     }
     if (!active || epoch !== generation) return;
@@ -171,8 +198,16 @@ export function createRenderer(
     } catch (e) {
       signatures.clear();
       console.error("Pixel Statbar rendering failed", e);
+      const detail =
+        e instanceof Error
+          ? e.message
+          : typeof e === "object" && e !== null && "error" in e
+            ? String(
+                (e.error as { message?: string })?.message ?? "Unknown error",
+              )
+            : String(e);
       await OBR.notification
-        .show("Pixel Statbar: ไม่สามารถวาดแถบได้ ลองเปิด Scene ใหม่", "ERROR")
+        .show(`Pixel Statbar: วาดแถบไม่ได้ — ${detail.slice(0, 180)}`, "ERROR")
         .catch(() => {});
     } finally {
       running = false;

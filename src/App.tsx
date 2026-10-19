@@ -466,7 +466,7 @@ export default function App() {
             </span>
           </a>
           <span className="demo-label">
-            OWLBEAR RODEO EXTENSION <i /> v1.0
+            OWLBEAR RODEO EXTENSION <i /> v1.0.1
           </span>
         </header>
       )}
@@ -711,7 +711,7 @@ export default function App() {
                 : state.ready
                   ? "เชื่อมต่อแล้ว · บันทึกในโทเคน"
                   : "กำลังเชื่อมต่อ…"}
-            <span>1.0</span>
+            <span>1.0.1</span>
           </footer>
         </div>
         {showcase && (
