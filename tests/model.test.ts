@@ -118,4 +118,7 @@ test("untrusted metadata is normalized and scene settings override room settings
   assert.equal(s.decay, false);
   assert.equal(s.showNames, true);
   assert.equal(readSettings({ width: Infinity }).width, 1.5);
+  assert.equal(readSettings({ offset: -20 }).offset, -20);
+  assert.equal(readSettings({ offset: -999 }).offset, -100);
+  assert.equal(readSettings({ offset: 999 }).offset, 100);
 });

@@ -1,7 +1,7 @@
 import type { Settings, Stats } from "./model.ts";
 
 export const ART_WIDTH = 928;
-export const ART_PATH = "/bars-v2/";
+export const ART_PATH = "/bars-v3/";
 export interface BarPart {
   key: string;
   url: string;
@@ -53,9 +53,9 @@ export function hostedBarParts(
             : p < 1
               ? 1
               : 0;
-    add("frame", `frame-${stage}-${Math.round(177 * p)}`, 0, top, 928, 240);
+    add("frame", `frame-${stage}-${Math.round(177 * p)}`, 0, top, 928, 184);
     if (options.segmented)
-      add("segments", `segments-${settings.segments}`, 0, top, 928, 240);
+      add("segments", `segments-${settings.segments}`, 0, top, 928, 184);
     if (options.numbers)
       add(
         "hp",
@@ -68,34 +68,31 @@ export function hostedBarParts(
         40,
       );
   }
-  if (stats.tempHp > 0) {
-    const text = `+${stats.tempHp} TMP`;
+  const badgeY = top + (stats.maxHp > 0 ? 172 : 0);
+  if (stats.tempHp > 0)
     add(
       "temp",
       "temp",
-      168,
-      top + 180,
-      204,
-      56,
-      text,
-      Math.min(32, 280 / text.length),
-      "#b9e8ed",
+      stats.ac > 0 ? 672 : 796,
+      badgeY,
+      112,
+      112,
+      String(stats.tempHp),
+      Math.min(40, 128 / String(stats.tempHp).length),
+      "#f3fff0",
     );
-  }
-  if (stats.ac > 0) {
-    const text = `${stats.ac} AC`;
+  if (stats.ac > 0)
     add(
       "ac",
       "ac",
-      740,
-      top + 180,
-      140,
-      56,
-      text,
-      Math.min(32, 196 / text.length),
-      "#f1db9e",
+      796,
+      badgeY,
+      112,
+      112,
+      String(stats.ac),
+      Math.min(40, 128 / String(stats.ac).length),
+      "#f1f6ff",
     );
-  }
   if (options.name)
     add(
       "name",
@@ -109,4 +106,11 @@ export function hostedBarParts(
       "#fff5df",
     );
   return parts;
+}
+
+export function barHeight(stats: Stats, hasName: boolean): number {
+  return (
+    (hasName ? 56 : 0) +
+    (stats.tempHp > 0 || stats.ac > 0 ? (stats.maxHp > 0 ? 284 : 112) : 184)
+  );
 }

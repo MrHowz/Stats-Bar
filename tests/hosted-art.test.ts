@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import sharp from "sharp";
-import { hostedBarParts } from "../src/hosted-art.ts";
+import { hostedBarParts, barHeight } from "../src/hosted-art.ts";
 import { DEFAULT_STATS, DEFAULT_SETTINGS, displayStats } from "../src/model.ts";
 
 test("all health levels use real decodable hosted PNGs with matching dimensions", async () => {
@@ -17,7 +17,7 @@ test("all health levels use real decodable hosted PNGs with matching dimensions"
       for (const part of parts) {
         assert.match(
           part.url,
-          /^https:\/\/stats-bar\.pages\.dev\/bars-v2\/[a-z0-9-]+\.png$/,
+          /^https:\/\/stats-bar\.pages\.dev\/bars-v3\/[a-z0-9-]+\.png$/,
         );
         assert.ok(part.url.length < 2048);
         const bytes = await readFile(
@@ -31,6 +31,42 @@ test("all health levels use real decodable hosted PNGs with matching dimensions"
       }
     }
   }
+});
+
+test("pixel heart and shield stay together at the right, and hidden badges leave no gap", async () => {
+  const stats = { ...DEFAULT_STATS, hp: 10, maxHp: 10, tempHp: 8, ac: 18 };
+  const options = { numbers: true, segmented: false };
+  const parts = hostedBarParts(
+    stats,
+    DEFAULT_SETTINGS,
+    options,
+    "https://example.com",
+  );
+  const heart = parts.find((p) => p.key === "temp")!;
+  const shield = parts.find((p) => p.key === "ac")!;
+  assert.equal(heart.y, shield.y);
+  assert.ok(heart.x + heart.width < shield.x);
+  assert.ok(shield.x + shield.width <= 928);
+  assert.equal(barHeight(stats, false), shield.y + shield.height);
+  for (const part of [heart, shield]) {
+    const bytes = await readFile(
+      new URL(`../public${new URL(part.url).pathname}`, import.meta.url),
+    );
+    const image = await sharp(bytes)
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    assert.equal(image.info.width, part.width);
+    assert.equal(image.info.height, part.height);
+  }
+  const alone = hostedBarParts(
+    { ...stats, ac: 0 },
+    DEFAULT_SETTINGS,
+    options,
+    "https://example.com",
+  );
+  assert.equal(alone.find((p) => p.key === "temp")!.x, shield.x);
+  assert.equal(barHeight({ ...stats, tempHp: 0, ac: 0 }, false), 184);
+  assert.equal(barHeight(stats, true), barHeight(stats, false) + 56);
 });
 test("labels remain local; segmented health omits exact HP, AC and temporary HP", () => {
   const stats = {

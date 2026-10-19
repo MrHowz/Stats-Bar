@@ -12,7 +12,7 @@ import {
   type Stats,
   type Settings,
 } from "./model.ts";
-import { ART_WIDTH } from "./hosted-art.ts";
+import { ART_WIDTH, barHeight } from "./hosted-art.ts";
 import type { BarPart } from "./hosted-art.ts";
 
 export function createRenderer(
@@ -101,7 +101,7 @@ export function createRenderer(
       }
       const bounds = cached.bounds;
       const width = Math.max(dpi * 0.5, bounds.width) * settings.width;
-      const height = (width * (name ? 74 : 60)) / 232;
+      const height = (width * barHeight(stats, !!name)) / ART_WIDTH;
       const position = {
         x: bounds.center.x - width / 2,
         y:

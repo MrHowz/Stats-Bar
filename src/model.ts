@@ -41,7 +41,7 @@ export const DEFAULT_STATS: Stats = {
 export const DEFAULT_SETTINGS: Settings = {
   position: "above",
   width: 1.5,
-  offset: 8,
+  offset: 2,
   showNumbers: true,
   showNames: false,
   decay: true,
@@ -78,8 +78,8 @@ export function readSettings(room: unknown, scene?: unknown): Settings {
         : 1.5,
     offset:
       typeof r.offset === "number" && Number.isFinite(r.offset)
-        ? Math.max(0, Math.min(100, r.offset))
-        : 8,
+        ? Math.max(-100, Math.min(100, r.offset))
+        : 2,
     showNumbers: typeof r.showNumbers === "boolean" ? r.showNumbers : true,
     showNames: typeof r.showNames === "boolean" ? r.showNames : false,
     decay: typeof r.decay === "boolean" ? r.decay : true,

@@ -93,14 +93,23 @@ export function barSvg(
   if (numbers && s.maxHp > 0)
     shape += `<text x="130" y="26.5" text-anchor="middle" font-family="monospace" font-weight="bold" font-size="10" fill="#fff8ec" stroke="#180c0c" stroke-width="2" paint-order="stroke" shape-rendering="auto">${s.hp} / ${s.maxHp}</text>`;
   let badges = "";
-  if (s.tempHp > 0)
-    badges += `<path d="M42 45h51v13H42z" fill="#101e26" stroke="#649baa" stroke-width="1"/><text x="67.5" y="54" text-anchor="middle" font-family="monospace" font-size="8" fill="#b9e8ed">+${s.tempHp} TMP</text>`;
+  const badgeY = s.maxHp > 0 ? 43 : 0;
+  if (s.tempHp > 0) {
+    const x = s.ac > 0 ? 168 : 199;
+    badges += `<g transform="translate(${x} ${badgeY})">${badgeShape("temp")}<text x="14" y="17" text-anchor="middle" font-family="monospace" font-weight="bold" font-size="${Math.min(10, 32 / String(s.tempHp).length)}" fill="#f3fff0" stroke="#102b19" stroke-width="1" paint-order="stroke">${s.tempHp}</text></g>`;
+  }
   if (s.ac > 0)
-    badges += `<path d="M185 45h35v11l-5 3h-25l-5-3z" fill="#24221c" stroke="#b5a576" stroke-width="1"/><text x="202.5" y="54" text-anchor="middle" font-family="monospace" font-size="8" fill="#f1db9e">${s.ac} AC</text>`;
+    badges += `<g transform="translate(199 ${badgeY})">${badgeShape("ac")}<text x="14" y="17" text-anchor="middle" font-family="monospace" font-weight="bold" font-size="${Math.min(10, 32 / String(s.ac).length)}" fill="#f1f6ff" stroke="#182838" stroke-width="1" paint-order="stroke">${s.ac}</text></g>`;
   const name = options.name
     ? `<text x="116" y="10" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#fff5df" stroke="#10171a" stroke-width="3" paint-order="stroke">${esc(options.name.slice(0, 32))}</text>`
     : "";
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="928" height="${(60 + top) * 4}" viewBox="0 0 232 ${60 + top}" shape-rendering="crispEdges">${name}<g transform="translate(0 ${top})">${s.maxHp > 0 ? shape : ""}${badges}</g></svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="928" height="${((s.tempHp || s.ac ? badgeY + 28 : 46) + top) * 4}" viewBox="0 0 232 ${(s.tempHp || s.ac ? badgeY + 28 : 46) + top}" shape-rendering="crispEdges">${name}<g transform="translate(0 ${top})">${s.maxHp > 0 ? shape : ""}${badges}</g></svg>`;
 }
 export const svgUrl = (svg: string) =>
   `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+
+export function badgeShape(kind: "temp" | "ac"): string {
+  if (kind === "temp")
+    return '<path fill="#080c0e" d="M3 3h8v3h6V3h8v3h3v12h-4v4h-4v4h-4v2h-4v-2H8v-4H4v-4H0V6h3z"/><path fill="#5f7c89" d="M4 5h6v4h8V5h6v3h2v9h-4v4h-4v4h-4v1h-2v-3H9v-4H5v-4H2V8h2z"/><path fill="#4d9a52" d="M5 7h4v5h10V7h4v10h-4v4h-4v3h-2v-3h-3v-4H6v-3H4V9h1z"/><path fill="#94d879" d="M5 7h4v4H5zM19 7h4v3h-4z"/><path fill="#285b36" d="M8 17h3v4h4v2h-2v-2h-3v-2H8z"/>';
+  return '<path fill="#080c0e" d="M4 0h20v3h4v17h-4v4h-5v3H9v-3H4v-4H0V3h4z"/><path fill="#5f7c89" d="M5 3h18v3h2v12h-4v4h-4v2h-6v-2H7v-4H3V6h2z"/><path fill="#95aab1" d="M5 3h18v3H6v11H3V6h2z"/><path fill="#344e68" d="M7 7h14v11h-4v3h-6v-3H7z"/><path fill="#6587a4" d="M7 7h14v3H10v8H7z"/><path fill="#405862" d="M7 19h4v3h6v2h-6v-2H7z"/>';
+}

@@ -1,5 +1,5 @@
 import { useRef, useState, useSyncExternalStore } from "react";
-import type { Item } from "@owlbear-rodeo/sdk";
+import type { Item, Image as OBRImage } from "@owlbear-rodeo/sdk";
 import {
   access,
   applyAmount,
@@ -107,7 +107,7 @@ function StatInput({
     safely(updateStats([item.id], (s) => editStat(s, field, input)));
   };
   return (
-    <label className={`stat-input ${field === "hp" ? "hp" : ""}`}>
+    <label className={`stat-input ${field}`}>
       <span>
         <Icon kind={icon} />
         {label}
@@ -189,14 +189,21 @@ function SettingsPanel() {
         />
       </label>
       <label className="setting">
-        ระยะห่าง
+        ระยะห่าง (ติดลบ = ชิดขึ้น)
         <input
           aria-label="ระยะห่างแถบ"
           type="number"
-          min="0"
+          min="-100"
           max="100"
-          value={s.offset}
-          onChange={(e) => change({ offset: Number(e.target.value) })}
+          key={s.offset}
+          defaultValue={s.offset}
+          onBlur={(e) => {
+            if (Number.isFinite(e.target.valueAsNumber))
+              change({ offset: e.target.valueAsNumber });
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") e.currentTarget.blur();
+          }}
         />
       </label>
       {(
@@ -243,206 +250,120 @@ function SettingsPanel() {
     </section>
   );
 }
-function Editor({ item }: { item: Item }) {
+
+function Visibility({
+  item,
+  compact = false,
+}: {
+  item: Item;
+  compact?: boolean;
+}) {
   const state = useSyncExternalStore(subscribe, getSnapshot);
   const s = readStats(item);
-  const editable = canEdit(item, state.viewer);
-  const full = access(item, state.viewer) === "full";
-  const [name, setName] = useState<string | null>(null);
-  if (!full)
-    return (
-      <div className="empty">
-        <Icon kind="eye" />
-        <h3>แสดงเฉพาะระดับพลัง</h3>
-        <p>GM ซ่อนตัวเลขและการแก้ไขของโทเคนนี้</p>
-      </div>
-    );
   return (
-    <section className="editor">
-      <div className="section-label">
-        <span>SELECTED TOKEN</span>
-        <span className="tag">{item.layer.toLowerCase()}</span>
-      </div>
-      <div className="token-heading">
-        <div className="avatar">
-          <Icon kind="shield" />
-        </div>
-        <div>
-          <h2>{shortName(item)}</h2>
-          <span
-            className={`health-status ${s.hp === 0 ? "dead" : s.hp / s.maxHp <= 0.25 ? "critical" : ""}`}
-          >
-            <i />
-            {healthLabel(s)}
-          </span>
-        </div>
-      </div>
-      <div className="bar-preview">
-        <Bar stats={s} settings={state.settings} />
-      </div>
-      <div className="stat-grid">
-        <StatInput item={item} field="hp" label="HP" icon="heart" />
-        <StatInput item={item} field="maxHp" label="MAX HP" icon="heart" />
-        <StatInput item={item} field="tempHp" label="TEMP HP" icon="spark" />
-        <StatInput item={item} field="ac" label="AC" icon="shield" />
-      </div>
-      <p className="input-hint">
-        <kbd>+6</kbd> รักษา <span>·</span> <kbd>-6</kbd> ลด HP <span>·</span>{" "}
-        <kbd>Tab</kbd> ช่องถัดไป
-      </p>
-      {editable && (
-        <div className="quick-actions">
-          <button
-            onClick={() =>
-              safely(updateStats([item.id], (v) => applyAmount(v, "damage", 1)))
-            }
-          >
-            −1 Damage
-          </button>
-          <button
-            onClick={() =>
-              safely(updateStats([item.id], (v) => applyAmount(v, "heal", 1)))
-            }
-          >
-            +1 Heal
-          </button>
-          <button
-            onClick={() =>
-              safely(updateStats([item.id], (v) => ({ ...v, hp: v.maxHp })))
-            }
-          >
-            เติม HP
-          </button>
-        </div>
-      )}
-      <details className="token-options">
-        <summary>
-          ชื่อและการมองเห็น <span>⌄</span>
-        </summary>
-        <label>
-          ชื่อโทเคน
-          <input
-            aria-label="ชื่อโทเคน"
-            maxLength={60}
-            value={name ?? s.name}
-            placeholder={item.name}
-            disabled={!editable}
-            onChange={(e) => setName(e.target.value)}
-            onBlur={() => {
-              if (name !== null) {
-                safely(
-                  updateStats([item.id], (v) => ({
-                    ...v,
-                    name: name.slice(0, 60),
-                  })),
-                );
-                setName(null);
-              }
-            }}
-          />
-        </label>
-        {state.viewer.role === "GM" && (
-          <>
-            <label>
-              ผู้เล่นมองเห็น
-              <select
-                aria-label="การมองเห็น"
-                value={s.visibility}
-                onChange={(e) =>
-                  safely(
-                    setVisibility([item.id], {
-                      visibility: e.target.value as Stats["visibility"],
-                    }),
-                  )
-                }
-              >
-                <option value="public">ตัวเลขทั้งหมด</option>
-                <option value="bar">
-                  เฉพาะแถบแบ่งช่วง (เจ้าของเห็นตัวเลข)
-                </option>
-                <option value="owner">เฉพาะเจ้าของและ GM</option>
-                <option value="gm">เฉพาะ GM</option>
-              </select>
-            </label>
-            <p className="muted small">
-              เจ้าของอ้างอิงจากผู้สร้างโทเคนใน Owlbear Rodeo
-            </p>
-          </>
-        )}
-      </details>
-      {!editable && (
-        <p className="note">ดูได้อย่างเดียว ตามสิทธิ์ของห้องและโทเคน</p>
-      )}
-    </section>
+    <select
+      className="visibility"
+      aria-label={`การมองเห็น ${shortName(item)}`}
+      title="การมองเห็น: ทั้งหมด / แบ่งช่วง / เจ้าของ / GM"
+      disabled={state.viewer.role !== "GM" || state.busy}
+      value={s.visibility}
+      onChange={(e) =>
+        safely(
+          setVisibility([item.id], {
+            visibility: e.target.value as Stats["visibility"],
+          }),
+        )
+      }
+    >
+      <option value="public">{compact ? "◉" : "◉ ทั้งหมด"}</option>
+      <option value="bar">{compact ? "▥" : "▥ แบ่งช่วง"}</option>
+      <option value="owner">{compact ? "♙" : "♙ เจ้าของ"}</option>
+      <option value="gm">{compact ? "◆" : "◆ GM"}</option>
+    </select>
   );
 }
-function Encounter({ items }: { items: Item[] }) {
-  const state = useSyncExternalStore(subscribe, getSnapshot);
+function TokenPicture({ item }: { item: Item }) {
+  const [broken, setBroken] = useState(false);
+  const url = (item as OBRImage).image?.url;
   return (
-    <div className="encounter">
-      <div className="map-caption">
-        <span className="live-dot" /> LIVE PREVIEW{" "}
-        <span>คลิกโทเคนเพื่อทดลอง</span>
+    <span className="token-picture">
+      {url && !broken ? (
+        <img src={url} alt="" onError={() => setBroken(true)} />
+      ) : (
+        <Icon kind="shield" />
+      )}
+    </span>
+  );
+}
+function Fields({ item }: { item: Item }) {
+  return (
+    <>
+      <StatInput item={item} field="hp" label="HP" icon="heart" />
+      <span className="slash">/</span>
+      <StatInput item={item} field="maxHp" label="MAX" icon="heart" />
+      <StatInput item={item} field="tempHp" label="TEMP" icon="heart" />
+      <StatInput item={item} field="ac" label="AC" icon="shield" />
+    </>
+  );
+}
+function CompactEditor({ item }: { item: Item }) {
+  const state = useSyncExternalStore(subscribe, getSnapshot);
+  const stats = readStats(item);
+  const [name, setName] = useState<string | null>(null);
+  if (access(item, state.viewer) !== "full")
+    return <p className="empty">GM แสดงเฉพาะระดับพลังของโทเคนนี้</p>;
+  return (
+    <section className="compact-editor">
+      <div className="name-line">
+        <TokenPicture item={item} />
+        <input
+          aria-label="ชื่อโทเคน"
+          placeholder={item.name}
+          value={name ?? stats.name}
+          maxLength={60}
+          disabled={!canEdit(item, state.viewer)}
+          onChange={(e) => setName(e.target.value)}
+          onBlur={() => {
+            if (name !== null) {
+              safely(updateStats([item.id], (s) => ({ ...s, name })));
+              setName(null);
+            }
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") e.currentTarget.blur();
+            if (e.key === "Escape") {
+              setName(null);
+            }
+          }}
+        />
       </div>
-      <div className="map-grid">
-        <div className="map-rune r1">✥</div>
-        <div className="map-rune r2">✥</div>
-        {items.slice(0, 5).map((item, n) => {
-          const s = readStats(item);
-          const mode = access(item, state.viewer);
-          if (mode === "none") return null;
-          return (
-            <button
-              className={`map-token token-${n} ${state.selection.includes(item.id) ? "selected" : ""}`}
-              key={item.id}
-              onClick={() => safely(select([item.id]))}
-            >
-              <div className="map-bar">
-                <Bar
-                  stats={displayStats(s, mode, state.settings.segments)}
-                  settings={state.settings}
-                  numbers={mode === "full"}
-                  segmented={mode === "bar"}
-                />
-              </div>
-              <div className={`portrait portrait-${n}`}>
-                <span>{["♜", "✦", "♞", "♟", "♜"][n]}</span>
-              </div>
-              <span className="map-token-name">
-                {shortName(item).split(" · ")[0]}
-              </span>
-            </button>
-          );
-        })}
+      <Bar stats={stats} settings={state.settings} />
+      <div className="compact-fields">
+        <Fields item={item} />
       </div>
-      <div className="map-footer">
-        <span>STONE & HEART</span>
-        <span>กรอบหินที่เปลี่ยนไปตามการต่อสู้</span>
+      <div className="access-line">
+        <span>ผู้เล่นเห็น</span>
+        <Visibility item={item} />
       </div>
-    </div>
+    </section>
   );
 }
 export default function App() {
   const state = useSyncExternalStore(subscribe, getSnapshot);
-  const [tab, setTab] = useState<"tokens" | "settings">("tokens");
-  const [filter, setFilter] = useState<"all" | "selected">("all");
-  const [search, setSearch] = useState("");
-  const [amount, setAmount] = useState("5");
   const context = new URLSearchParams(location.search).has("context");
-  const showcase =
-    state.demo &&
-    !context &&
-    !new URLSearchParams(location.search).has("panel");
+  const [settings, setSettings] = useState(false);
+  const [search, setSearch] = useState("");
+  const [onlySelected, setOnlySelected] = useState(false);
+  const [amount, setAmount] = useState("5");
   const visible = state.items.filter((i) => access(i, state.viewer) !== "none");
   const selected = visible.filter((i) => state.selection.includes(i.id));
-  const active = selected[0];
+  const targets = selected.filter((i) => canEdit(i, state.viewer));
   const listed = visible.filter(
     (i) =>
-      (filter === "all" || state.selection.includes(i.id)) &&
+      (!onlySelected || state.selection.includes(i.id)) &&
       shortName(i).toLowerCase().includes(search.toLowerCase()),
   );
-  const targets = selected.filter((i) => canEdit(i, state.viewer));
-  const operation = (kind: "damage" | "heal" | "temp") => {
+  const operate = (kind: "damage" | "heal" | "temp") => {
     const n = Number(amount);
     if (!amount.trim() || !Number.isFinite(n) || n < 0 || n > 99999) {
       report(new Error("ใส่จำนวนระหว่าง 0–99,999"));
@@ -456,296 +377,241 @@ export default function App() {
     );
   };
   return (
-    <main className={showcase ? "demo-shell" : "embedded"}>
-      {showcase && (
-        <header className="demo-header">
-          <a className="brand" href="./">
-            <img src="./icon.svg" alt="" />
-            <span>
-              PIXEL <b>STATBAR</b>
-            </span>
-          </a>
-          <span className="demo-label">
-            OWLBEAR RODEO EXTENSION <i /> v1.0.2
-          </span>
+    <main className={`stat-app ${context ? "context-app" : "table-app"}`}>
+      {!context && (
+        <header className="app-header">
+          <img src="./icon.svg" alt="" />
+          <strong>Pixel Statbar</strong>
+          <span>{state.viewer.role}</span>
+          <button
+            aria-label={settings ? "กลับรายการโทเคน" : "ตั้งค่า"}
+            disabled={state.viewer.role !== "GM"}
+            onClick={() => setSettings(!settings)}
+          >
+            <Icon kind={settings ? "cross" : "gear"} />
+          </button>
         </header>
       )}
-      {showcase && (
-        <div className="demo-intro">
-          <div className="eyebrow">EVERY HIT TELLS A STORY</div>
-          <h1>
-            A little heart.
-            <br />
-            <em>A lot of adventure.</em>
-          </h1>
-          <p>
-            แถบพลังพิกเซล กรอบหิน และทุกรอยแผลของการผจญภัย
-            <br />
-            ลองเลือกโทเคนแล้วปรับ HP เพื่อดูการเปลี่ยนแปลง
-          </p>
+      {state.error && (
+        <div role="alert" className="error">
+          {state.error}
+          <button aria-label="ปิดข้อความ" onClick={clearError}>
+            ×
+          </button>
         </div>
       )}
-      <div className="workspace">
-        <div className="panel">
-          <header className="panel-header">
-            <div className="panel-title">
-              <img src="./icon.svg" alt="" />
-              <div>
-                <strong>PIXEL STATBAR</strong>
-                <small>
-                  {state.demo
-                    ? "PREVIEW SANDBOX"
-                    : state.sceneReady
-                      ? "OWLBEAR RODEO"
-                      : "WAITING FOR SCENE"}
-                </small>
-              </div>
-            </div>
-            <span className="role">{state.viewer.role}</span>
-            <button
-              className={`icon-button ${tab === "settings" ? "on" : ""}`}
-              title="ตั้งค่า"
-              aria-label="ตั้งค่า"
-              disabled={state.viewer.role !== "GM" || !state.sceneReady}
-              onClick={() => setTab(tab === "settings" ? "tokens" : "settings")}
-            >
-              <Icon kind="gear" />
-            </button>
-          </header>
-          {state.error && (
-            <div role="alert" className="error">
-              {state.error}
-              <button aria-label="ปิดข้อความ" onClick={clearError}>
-                ×
-              </button>
-            </div>
-          )}
-          {!state.ready ? (
-            <div className="empty">กำลังเชื่อมต่อ Owlbear Rodeo…</div>
-          ) : !state.sceneReady ? (
-            <div className="empty">
-              <Icon kind="heart" />
-              <h3>เปิด Scene เพื่อเริ่มต้น</h3>
-              <p>เลือกโทเคน แล้วกำหนด Max HP เพื่อสร้างแถบพลัง</p>
-            </div>
-          ) : tab === "settings" && state.viewer.role === "GM" ? (
-            <SettingsPanel />
+      {!state.ready || !state.sceneReady ? (
+        <p className="empty">
+          {state.ready ? "เปิด Scene เพื่อเริ่มใช้งาน" : "กำลังเชื่อมต่อ…"}
+        </p>
+      ) : settings && !context ? (
+        <SettingsPanel />
+      ) : (
+        <>
+          {context ? (
+            selected[0] ? (
+              <CompactEditor key={selected[0].id} item={selected[0]} />
+            ) : (
+              <p className="empty">เลือกโทเคนเพื่อแก้ค่าสถานะ</p>
+            )
           ) : (
             <>
-              {active ? (
-                <Editor key={active.id} item={active} />
-              ) : (
-                <div className="empty">
-                  <Icon kind="heart" />
-                  <h3>เลือกโทเคนของคุณ</h3>
-                  <p>
-                    เลือกบนแผนที่หรือจากรายการด้านล่าง
-                    <br />
-                    คลิกขวา → Pixel Statbar เพื่อแก้ค่าสถานะ
-                  </p>
-                </div>
-              )}
-              {!context && (
-                <section className="roster">
-                  <div className="roster-title">
-                    <h3>
-                      โทเคนใน Scene <span>{visible.length}</span>
-                    </h3>
-                    <button
-                      className="text-button"
-                      onClick={() =>
+              <div className="table-tools">
+                <input
+                  aria-label="ค้นหาโทเคน"
+                  placeholder="ค้นหาโทเคน…"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+                <button
+                  className={onlySelected ? "active" : ""}
+                  onClick={() => setOnlySelected(!onlySelected)}
+                  aria-pressed={onlySelected}
+                >
+                  ที่เลือก ({selected.length})
+                </button>
+              </div>
+              <div
+                className="stats-table"
+                role="table"
+                aria-label="ค่าสถานะโทเคน"
+              >
+                <div className="stats-row table-head" role="row">
+                  <span role="columnheader">
+                    <input
+                      type="checkbox"
+                      aria-label="เลือกทุกโทเคนที่แสดง"
+                      checked={
+                        listed.length > 0 &&
+                        listed.every((i) => state.selection.includes(i.id))
+                      }
+                      onChange={(e) =>
                         safely(
                           select(
-                            listed
-                              .filter((i) => canEdit(i, state.viewer))
-                              .map((i) => i.id),
+                            e.target.checked
+                              ? [
+                                  ...new Set([
+                                    ...state.selection,
+                                    ...listed.map((i) => i.id),
+                                  ]),
+                                ]
+                              : state.selection.filter(
+                                  (id) => !listed.some((i) => i.id === id),
+                                ),
                           ),
                         )
                       }
-                    >
-                      เลือกทั้งหมด
-                    </button>
-                  </div>
-                  <div className="roster-tools">
-                    <div className="segmented">
-                      <button
-                        className={filter === "all" ? "active" : ""}
-                        onClick={() => setFilter("all")}
+                    />{" "}
+                    โทเคน
+                  </span>
+                  <span role="columnheader">สิทธิ์</span>
+                  <span role="columnheader">HP</span>
+                  <span />
+                  <span role="columnheader">MAX</span>
+                  <span role="columnheader" className="temp-label">
+                    ♥ TEMP
+                  </span>
+                  <span role="columnheader" className="ac-label">
+                    AC
+                  </span>
+                </div>
+                <div className="table-body">
+                  {listed.map((item) => {
+                    const mode = access(item, state.viewer);
+                    return (
+                      <div
+                        className={`stats-row ${state.selection.includes(item.id) ? "selected" : ""}`}
+                        role="row"
+                        key={item.id}
                       >
-                        ทั้งหมด
-                      </button>
-                      <button
-                        className={filter === "selected" ? "active" : ""}
-                        onClick={() => setFilter("selected")}
-                      >
-                        ที่เลือก ({selected.length})
-                      </button>
-                    </div>
-                    <input
-                      aria-label="ค้นหาโทเคน"
-                      className="search"
-                      value={search}
-                      onChange={(e) => setSearch(e.target.value)}
-                      placeholder="ค้นหาชื่อ…"
-                    />
-                  </div>
-                  <div className="token-list">
-                    {listed.length === 0 ? (
-                      <p className="muted empty-list">ไม่พบโทเคน</p>
-                    ) : (
-                      listed.map((item, n) => {
-                        const s = readStats(item);
-                        const mode = access(item, state.viewer);
-                        return (
-                          <div
-                            className={`token-row ${state.selection.includes(item.id) ? "selected" : ""}`}
-                            key={item.id}
+                        <div className="token-cell">
+                          <input
+                            type="checkbox"
+                            aria-label={`เลือก ${shortName(item)}`}
+                            checked={state.selection.includes(item.id)}
+                            onChange={(e) =>
+                              safely(
+                                select(
+                                  e.target.checked
+                                    ? [...state.selection, item.id]
+                                    : state.selection.filter(
+                                        (id) => id !== item.id,
+                                      ),
+                                ),
+                              )
+                            }
+                          />
+                          <button
+                            className="token-name"
+                            title={shortName(item)}
+                            onClick={() => safely(select([item.id]))}
                           >
-                            <input
-                              type="checkbox"
-                              aria-label={`เลือก ${shortName(item)}`}
-                              checked={state.selection.includes(item.id)}
-                              onChange={(e) =>
-                                safely(
-                                  select(
-                                    e.target.checked
-                                      ? [...state.selection, item.id]
-                                      : state.selection.filter(
-                                          (id) => id !== item.id,
-                                        ),
-                                  ),
-                                )
-                              }
-                            />
-                            <button
-                              className="token-row-main"
-                              onClick={() => safely(select([item.id]))}
-                            >
-                              <span className={`mini-avatar color-${n % 4}`}>
-                                <Icon kind="shield" />
-                              </span>
-                              <span className="row-name">
-                                {shortName(item)}
-                                <small>
-                                  {s.visibility === "gm"
-                                    ? "GM only"
-                                    : s.visibility === "bar"
-                                      ? "Segmented for players"
-                                      : s.visibility === "owner"
-                                        ? "Owner & GM"
-                                        : s.maxHp
-                                          ? "Public stats"
-                                          : "ตั้ง Max HP เพื่อเริ่ม"}
-                                </small>
-                              </span>
-                              <span className="row-hp">
-                                {mode === "full" ? (
-                                  <>
-                                    {s.hp}
-                                    <small> / {s.maxHp}</small>
-                                  </>
-                                ) : (
-                                  healthLabel(
-                                    displayStats(
-                                      s,
-                                      "bar",
-                                      state.settings.segments,
-                                    ),
-                                  )
-                                )}
-                              </span>
-                            </button>
-                          </div>
-                        );
-                      })
-                    )}
-                  </div>
-                </section>
-              )}
-              <section className="batch">
-                <div className="section-label">
-                  <span>QUICK ACTIONS</span>
-                  <span>{targets.length} โทเคนที่แก้ไขได้</span>
+                            <TokenPicture item={item} />
+                            <span>{shortName(item)}</span>
+                          </button>
+                        </div>
+                        <Visibility item={item} compact />
+                        {mode === "full" ? (
+                          <Fields item={item} />
+                        ) : (
+                          <span className="hidden-stats">
+                            {healthLabel(
+                              displayStats(
+                                readStats(item),
+                                "bar",
+                                state.settings.segments,
+                              ),
+                            )}{" "}
+                            · ซ่อนตัวเลข
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
+                  {listed.length === 0 && <p className="empty">ไม่พบโทเคน</p>}
                 </div>
-                <div className="batch-controls">
-                  <input
-                    aria-label="จำนวน Damage หรือ Heal"
-                    inputMode="numeric"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                  />
-                  <button
-                    className="damage"
-                    disabled={!targets.length || state.busy}
-                    onClick={() => operation("damage")}
-                  >
-                    − Damage
-                  </button>
-                  <button
-                    className="heal"
-                    disabled={!targets.length || state.busy}
-                    onClick={() => operation("heal")}
-                  >
-                    + Heal
-                  </button>
-                  <button
-                    className="temp"
-                    disabled={!targets.length || state.busy}
-                    onClick={() => operation("temp")}
-                  >
-                    + Temp
-                  </button>
-                </div>
-                <p className="small muted">
-                  Damage หัก Temp HP ก่อน · Heal ไม่เกิน Max HP
-                </p>
-              </section>
+              </div>
             </>
           )}
-          <footer className="panel-footer">
-            <span className="live-dot" />
-            {state.busy
-              ? "กำลังบันทึก…"
-              : state.demo
-                ? "โหมดทดลอง · บันทึกเฉพาะเครื่องนี้"
-                : state.ready
-                  ? "เชื่อมต่อแล้ว · บันทึกในโทเคน"
-                  : "กำลังเชื่อมต่อ…"}
-            <span>1.0.2</span>
-          </footer>
-        </div>
-        {showcase && (
-          <div className="preview-side">
-            <Encounter items={visible} />
-            <div className="preview-tools">
-              <button onClick={toggleRole}>
-                <Icon kind="eye" /> มุมมอง{" "}
-                {state.viewer.role === "GM" ? "Player" : "GM"}
+          <section className="batch-bar">
+            <div className="batch-label">
+              {context ? "ปรับค่า" : "ใช้กับที่เลือก"} · {targets.length} โทเคน
+            </div>
+            <div className="batch-controls">
+              <input
+                aria-label="จำนวน Damage หรือ Heal"
+                inputMode="numeric"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+              />
+              <button
+                className="damage"
+                disabled={!targets.length || state.busy}
+                onClick={() => operate("damage")}
+              >
+                − Damage
               </button>
-              <button onClick={resetDemo}>↺ เริ่มทดลองใหม่</button>
+              <button
+                className="heal"
+                disabled={!targets.length || state.busy}
+                onClick={() => operate("heal")}
+              >
+                + Heal
+              </button>
+              <button
+                className="temp"
+                disabled={!targets.length || state.busy}
+                onClick={() => operate("temp")}
+              >
+                ♥ Temp
+              </button>
             </div>
-            <div className="install-note">
-              <span>01</span>
-              <div>
-                <h3>Ready for your next encounter.</h3>
-                <p>
-                  อัปโหลดโฟลเดอร์ dist ไปยังโฮสต์ HTTPS แล้วเพิ่ม URL ของ
-                  manifest.json ใน Owlbear Rodeo
-                </p>
-                <a href="./manifest.json" target="_blank" rel="noreferrer">
-                  ดู Extension manifest ↗
-                </a>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-      {showcase && (
-        <footer className="demo-footer">
-          <span>BUILT FOR SMALL HEROES & BIG ADVENTURES</span>
-          <span>Pixel Statbar · Independent Owlbear Rodeo extension</span>
-        </footer>
+            {!context && (
+              <p className="hint">
+                พิมพ์ +6 / -6 ได้ · Enter บันทึก · Damage หัก Temp ก่อน
+              </p>
+            )}
+          </section>
+        </>
       )}
+      <footer className="status-line">
+        <span>
+          {state.busy
+            ? "กำลังบันทึก…"
+            : state.demo
+              ? "โหมดทดลอง"
+              : "บันทึกในโทเคน"}
+        </span>
+        <span>1.1.0</span>
+      </footer>
+      {state.demo &&
+        !context &&
+        !new URLSearchParams(location.search).has("panel") && (
+          <section className="demo-preview">
+            <div className="demo-controls">
+              <button onClick={toggleRole}>สลับ GM / Player</button>
+              <button onClick={resetDemo}>เริ่มทดลองใหม่</button>
+            </div>
+            {visible.map((item) => {
+              const mode = access(item, state.viewer);
+              return (
+                <div key={item.id}>
+                  <small>{shortName(item)}</small>
+                  <Bar
+                    stats={displayStats(
+                      readStats(item),
+                      mode as "full" | "bar",
+                      state.settings.segments,
+                    )}
+                    settings={state.settings}
+                    numbers={mode === "full"}
+                    segmented={mode === "bar"}
+                  />
+                </div>
+              );
+            })}
+          </section>
+        )}
     </main>
   );
 }
