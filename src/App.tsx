@@ -1,6 +1,8 @@
+import { Input, Select, Button } from "./controls";
 import { useRef, useState, useSyncExternalStore } from "react";
 import type { Item, Image as OBRImage } from "@owlbear-rodeo/sdk";
 import {
+  DEFAULT_SETTINGS,
   access,
   applyAmount,
   canEdit,
@@ -112,7 +114,7 @@ function StatInput({
         <Icon kind={icon} />
         {label}
       </span>
-      <input
+      <Input
         aria-label={`${label} ${shortName(item)}`}
         aria-invalid={!!error}
         title={error || "พิมพ์ค่า หรือ +6 / -6 แล้วกด Enter"}
@@ -151,22 +153,22 @@ function SettingsPanel() {
       <h2>ตั้งค่าแถบพลัง</h2>
       <p className="muted">ค่าของ Scene จะมีผลเหนือค่าของห้อง</p>
       <div className="segmented">
-        <button
+        <Button
           className={scope === "scene" ? "active" : ""}
           onClick={() => setScope("scene")}
         >
           Scene นี้
-        </button>
-        <button
+        </Button>
+        <Button
           className={scope === "room" ? "active" : ""}
           onClick={() => setScope("room")}
         >
           ทั้งห้อง
-        </button>
+        </Button>
       </div>
       <label className="setting">
         ตำแหน่ง
-        <select
+        <Select
           value={s.position}
           onChange={(e) =>
             change({ position: e.target.value as Settings["position"] })
@@ -174,11 +176,11 @@ function SettingsPanel() {
         >
           <option value="above">เหนือโทเคน</option>
           <option value="below">ใต้โทเคน</option>
-        </select>
+        </Select>
       </label>
       <label className="setting">
         ความกว้าง <span>{s.width.toFixed(1)}×</span>
-        <input
+        <Input
           aria-label="ความกว้างแถบ"
           type="range"
           min="0.6"
@@ -190,7 +192,7 @@ function SettingsPanel() {
       </label>
       <label className="setting">
         ระยะห่าง (ติดลบ = ชิดขึ้น)
-        <input
+        <Input
           aria-label="ระยะห่างแถบ"
           type="number"
           min="-100"
@@ -215,7 +217,7 @@ function SettingsPanel() {
       ).map(([key, label]) => (
         <label className="setting" key={key}>
           {label}
-          <input
+          <Input
             type="checkbox"
             checked={s[key]}
             onChange={(e) => change({ [key]: e.target.checked })}
@@ -224,7 +226,7 @@ function SettingsPanel() {
       ))}
       <label className="setting">
         จำนวนช่วงที่ผู้เล่นเห็น
-        <select
+        <Select
           value={s.segments}
           onChange={(e) => change({ segments: Number(e.target.value) })}
         >
@@ -233,16 +235,22 @@ function SettingsPanel() {
               {n} ช่วง
             </option>
           ))}
-        </select>
+        </Select>
       </label>
       {scope === "scene" && (
-        <button
+        <Button
           className="wide subtle"
           onClick={() => safely(saveSettings(null, "scene"))}
         >
           ใช้ค่าจากห้อง
-        </button>
+        </Button>
       )}
+      <Button
+        className="wide"
+        onClick={() => change({ offset: DEFAULT_SETTINGS.offset })}
+      >
+        ใช้ระยะเริ่มต้น ({DEFAULT_SETTINGS.offset})
+      </Button>
       <div className="note">
         Max HP มากกว่า 0 จะแสดงแถบอัตโนมัติ · Temp HP และ AC จะแสดงเมื่อมากกว่า
         0
@@ -261,8 +269,13 @@ function Visibility({
   const state = useSyncExternalStore(subscribe, getSnapshot);
   const s = readStats(item);
   return (
-    <select
+    <Select
       className="visibility"
+      shortLabels={
+        compact
+          ? { public: "ทุกคน", bar: "แบ่งช่วง", owner: "เจ้าของ", gm: "GM" }
+          : undefined
+      }
       aria-label={`การมองเห็น ${shortName(item)}`}
       title="การมองเห็น: ทั้งหมด / แบ่งช่วง / เจ้าของ / GM"
       disabled={state.viewer.role !== "GM" || state.busy}
@@ -275,11 +288,11 @@ function Visibility({
         )
       }
     >
-      <option value="public">{compact ? "◉" : "◉ ทั้งหมด"}</option>
-      <option value="bar">{compact ? "▥" : "▥ แบ่งช่วง"}</option>
-      <option value="owner">{compact ? "♙" : "♙ เจ้าของ"}</option>
-      <option value="gm">{compact ? "◆" : "◆ GM"}</option>
-    </select>
+      <option value="public">ทุกคนเห็นตัวเลข</option>
+      <option value="bar">เห็นแถบแบ่งช่วง</option>
+      <option value="owner">เจ้าของและ GM</option>
+      <option value="gm">เฉพาะ GM</option>
+    </Select>
   );
 }
 function TokenPicture({ item }: { item: Item }) {
@@ -316,7 +329,7 @@ function CompactEditor({ item }: { item: Item }) {
     <section className="compact-editor">
       <div className="name-line">
         <TokenPicture item={item} />
-        <input
+        <Input
           aria-label="ชื่อโทเคน"
           placeholder={item.name}
           value={name ?? stats.name}
@@ -383,21 +396,21 @@ export default function App() {
           <img src="./icon.svg" alt="" />
           <strong>Pixel Statbar</strong>
           <span>{state.viewer.role}</span>
-          <button
+          <Button
             aria-label={settings ? "กลับรายการโทเคน" : "ตั้งค่า"}
             disabled={state.viewer.role !== "GM"}
             onClick={() => setSettings(!settings)}
           >
             <Icon kind={settings ? "cross" : "gear"} />
-          </button>
+          </Button>
         </header>
       )}
       {state.error && (
         <div role="alert" className="error">
           {state.error}
-          <button aria-label="ปิดข้อความ" onClick={clearError}>
+          <Button aria-label="ปิดข้อความ" onClick={clearError}>
             ×
-          </button>
+          </Button>
         </div>
       )}
       {!state.ready || !state.sceneReady ? (
@@ -417,19 +430,19 @@ export default function App() {
           ) : (
             <>
               <div className="table-tools">
-                <input
+                <Input
                   aria-label="ค้นหาโทเคน"
                   placeholder="ค้นหาโทเคน…"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
-                <button
+                <Button
                   className={onlySelected ? "active" : ""}
                   onClick={() => setOnlySelected(!onlySelected)}
                   aria-pressed={onlySelected}
                 >
                   ที่เลือก ({selected.length})
-                </button>
+                </Button>
               </div>
               <div
                 className="stats-table"
@@ -438,7 +451,7 @@ export default function App() {
               >
                 <div className="stats-row table-head" role="row">
                   <span role="columnheader">
-                    <input
+                    <Input
                       type="checkbox"
                       aria-label="เลือกทุกโทเคนที่แสดง"
                       checked={
@@ -464,12 +477,12 @@ export default function App() {
                     />{" "}
                     โทเคน
                   </span>
-                  <span role="columnheader">สิทธิ์</span>
+                  <span role="columnheader">ผู้เล่นเห็น</span>
                   <span role="columnheader">HP</span>
                   <span />
                   <span role="columnheader">MAX</span>
                   <span role="columnheader" className="temp-label">
-                    ♥ TEMP
+                    TEMP
                   </span>
                   <span role="columnheader" className="ac-label">
                     AC
@@ -485,7 +498,7 @@ export default function App() {
                         key={item.id}
                       >
                         <div className="token-cell">
-                          <input
+                          <Input
                             type="checkbox"
                             aria-label={`เลือก ${shortName(item)}`}
                             checked={state.selection.includes(item.id)}
@@ -501,14 +514,14 @@ export default function App() {
                               )
                             }
                           />
-                          <button
+                          <Button
                             className="token-name"
                             title={shortName(item)}
                             onClick={() => safely(select([item.id]))}
                           >
                             <TokenPicture item={item} />
                             <span>{shortName(item)}</span>
-                          </button>
+                          </Button>
                         </div>
                         <Visibility item={item} compact />
                         {mode === "full" ? (
@@ -538,33 +551,36 @@ export default function App() {
               {context ? "ปรับค่า" : "ใช้กับที่เลือก"} · {targets.length} โทเคน
             </div>
             <div className="batch-controls">
-              <input
+              <Input
                 aria-label="จำนวน Damage หรือ Heal"
                 inputMode="numeric"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
               />
-              <button
+              <Button
                 className="damage"
+                color="error"
                 disabled={!targets.length || state.busy}
                 onClick={() => operate("damage")}
               >
                 − Damage
-              </button>
-              <button
+              </Button>
+              <Button
                 className="heal"
+                color="success"
                 disabled={!targets.length || state.busy}
                 onClick={() => operate("heal")}
               >
                 + Heal
-              </button>
-              <button
+              </Button>
+              <Button
                 className="temp"
+                color="success"
                 disabled={!targets.length || state.busy}
                 onClick={() => operate("temp")}
               >
                 ♥ Temp
-              </button>
+              </Button>
             </div>
             {!context && (
               <p className="hint">
@@ -582,15 +598,15 @@ export default function App() {
               ? "โหมดทดลอง"
               : "บันทึกในโทเคน"}
         </span>
-        <span>1.1.0</span>
+        <span>1.2.0</span>
       </footer>
       {state.demo &&
         !context &&
         !new URLSearchParams(location.search).has("panel") && (
           <section className="demo-preview">
             <div className="demo-controls">
-              <button onClick={toggleRole}>สลับ GM / Player</button>
-              <button onClick={resetDemo}>เริ่มทดลองใหม่</button>
+              <Button onClick={toggleRole}>สลับ GM / Player</Button>
+              <Button onClick={resetDemo}>เริ่มทดลองใหม่</Button>
             </div>
             {visible.map((item) => {
               const mode = access(item, state.viewer);

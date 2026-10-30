@@ -1,4 +1,4 @@
-# Pixel Statbar
+# Pixel Statbar 1.2.0
 
 Extension สำหรับ Owlbear Rodeo: แถบ HP พิกเซลกรอบหิน หัวใจแดง และรอยแตกตามระดับพลัง พร้อม HP / Max HP / Temp HP / AC
 
@@ -112,3 +112,17 @@ npm run build
 - [Hosting an extension](https://docs.owlbear.rodeo/extensions/tutorial-sharing-your-extension/)
 
 Pixel Statbar เป็น Extension แยกอิสระ ไม่ใช่ผลิตภัณฑ์อย่างเป็นทางการของ Stat Bubbles หรือ Owlbear Rodeo
+
+## 1.2.0 — UI มาตรฐานและระยะเริ่มต้น
+
+ใช้ Material UI 6 จริงเหมือน Token Portrait: OutlinedInput, Select/MenuItem, Checkbox, Slider และ Button พร้อม palette จาก OBR.theme.getTheme()/onChange รองรับธีมสว่างและมืด พื้นหลัง iframe โปร่งใส ขอบมน 12px ตามแนวทาง Owl Trackers และ ThemeProvider ของ Initiative Tracker
+
+ช่องผู้เล่นเห็นแสดงข้อความ ทุกคน / แบ่งช่วง / เจ้าของ / GM และเมนูมีชื่อเต็ม ฟอนต์ Roboto + Noto Sans Thai รวมใน build พร้อมใบอนุญาต ไม่ต้องโหลดจาก Google Fonts ตัวเลขใช้ tabular numerals เพื่ออ่านเทียบกันง่าย
+
+ระยะเริ่มต้นใหม่ -12 (เดิม 2) ค่าที่ตั้งไว้ชัดเจนในห้อง/Scene ยังเก็บเดิม กดตั้งค่า → ใช้ระยะเริ่มต้น (-12) เพื่อใช้กับห้องเดิมใน scope ที่เลือก การมองเห็นและสิทธิ์แก้ค่าสถานะไม่เปลี่ยน
+
+แนวทางอ้างอิง:
+
+- https://github.com/owlbear-rodeo/initiative-tracker/blob/main/src/PluginThemeProvider.tsx
+- https://github.com/SeamusFinlayson/owl-trackers/blob/main/src/getTheme.ts
+- https://docs.owlbear.rodeo/extensions/apis/theme/
