@@ -434,3 +434,37 @@ html.context body {
     font-size: 12px;
   }
 }
+
+/* Owlbear supplies the translucent extension surface. */
+html:not(.context),
+html:not(.context) body,
+html:not(.context) #root {
+  min-height: 100%;
+}
+.table-app {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  max-width: none;
+}
+.table-app .stats-table {
+  flex: 1;
+  min-height: 120px;
+}
+.table-app .table-head {
+  background: transparent;
+  position: static;
+}
+.table-app .table-body {
+  max-height: calc(100dvh - 250px);
+}
+.table-app > .batch-bar {
+  margin-top: auto;
+}
+.stat-input input {
+  font-family: Roboto, "Noto Sans Thai", sans-serif;
+  font-weight: 700;
+}
+
+@font-face { font-family: "Pixel Stat Digits"; src: url("/fonts/pixel-stat-digits.ttf") format("truetype"); font-weight: 100 900; font-display: swap; unicode-range: U+0030-0039; }
+.stat-input input, .batch-controls input { font-family: "Pixel Stat Digits", Roboto, "Noto Sans Thai", sans-serif; font-weight: 400; }

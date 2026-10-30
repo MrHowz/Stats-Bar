@@ -1,0 +1,10 @@
+<!doctype html><meta charset="utf-8"><title>Pixel numerals comparison</title><style>body{background:#303642;color:white;font:16px Arial;padding:20px}.bar{position:relative;width:464px;margin:20px 0;height:150px}img{position:absolute;image-rendering:pixelated}h2{font-size:16px}</style><h2>Hosted map glyphs: HP 55 / 60, Temp 50, AC 50</h2><div id="host" class="bar"></div><h2>Same font in preview</h2><div id="preview" class="bar"></div><h2>Five-digit badge fit</h2><div id="large" class="bar"></div><script type="module">
+import { hostedBarParts } from '/src/hosted-art.ts';
+import { barSvg, svgUrl } from '/src/art.ts';
+import { DEFAULT_STATS,DEFAULT_SETTINGS } from '/src/model.ts';
+const stats={...DEFAULT_STATS,hp:55,maxHp:60,tempHp:50,ac:50};
+for(const [id,data] of [['host',stats],['large',{...stats,hp:99999,maxHp:99999,tempHp:99999,ac:99999}]]){
+ for(const p of hostedBarParts(data,DEFAULT_SETTINGS,{numbers:true,segmented:false},location.origin)){
+ const im=document.createElement('img'); im.src=p.url; Object.assign(im.style,{left:p.x/2+'px',top:p.y/2+'px',width:p.width*(p.glyphScale??1)/2+'px',height:p.height*(p.glyphScale??1)/2+'px'});document.getElementById(id).append(im);}}
+const im=document.createElement('img');im.src=svgUrl(barSvg(stats,DEFAULT_SETTINGS,{numbers:true}));im.style.width='464px';document.getElementById('preview').append(im);
+</script>

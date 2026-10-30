@@ -1,3 +1,4 @@
+import { pixelText } from "../src/pixel-font.ts";
 import { barSvg } from "../src/art.ts";
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -167,10 +168,14 @@ test("role changes replace exact stats with segmented health and remove GM-only 
   const f = fixture();
   f.renderer.setReady(true);
   await f.renderer.flushNow();
-  assert.match(f.rendered.at(-1)!, />18 \/ 48</);
+  assert.ok(
+    f.rendered.at(-1)!.includes(pixelText("18 / 48", 130, 23, 174, 11)),
+  );
   f.setRole("PLAYER");
   await f.renderer.flushNow();
-  assert.doesNotMatch(f.rendered.at(-1)!, /18 \/ 48|16 AC/);
+  assert.ok(
+    !f.rendered.at(-1)!.includes(pixelText("18 / 48", 130, 23, 174, 11)),
+  );
   (f.getItems()[0].metadata[STAT_KEY] as { visibility: string }).visibility =
     "gm";
   await f.renderer.flushNow();

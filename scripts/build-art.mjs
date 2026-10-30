@@ -1,3 +1,4 @@
+import { GLYPHS, glyphSvgBody, glyphFile } from "../src/pixel-font.ts";
 import sharp from "sharp";
 import { mkdir, writeFile } from "node:fs/promises";
 import { barSvg, badgeShape } from "../src/art.ts";
@@ -31,6 +32,7 @@ for (const count of [4, 5, 10]) {
     lines += `<rect x="${41 + Math.round((177 * i) / count)}" y="16" width="2" height="15" fill="#0b1012"/>`;
   add(`segments-${count}`, svg(928, 184, lines));
 }
+for (const char of Object.keys(GLYPHS)) add(`digit-${glyphFile(char)}`, svg(28, 36, glyphSvgBody(char)));
 add("hp", svg(712, 64));
 add("name", svg(928, 56));
 add("temp", svg(112, 112, badgeShape("temp")));

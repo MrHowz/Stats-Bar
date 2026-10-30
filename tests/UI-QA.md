@@ -1,0 +1,11 @@
+# 1.2.1 UI verification inventory
+- Official MUI palette, radius16, transparent full-height main shell: dark/light at440x620; footer and batch controls within bounds.
+- Context230x300: fields, visibility and quick actions visible without overflow.
+- Text visibility control: open, choose owner, restore public.
+- Numeric inputs: relative edit and restoration, invalid expression rejection.
+- Batch: damage consumes temp first; heal and temp; reset demo.
+- Search and selected-only full toggle cycle; no-results state.
+- Settings: open/close, default offset remains -12.
+- Pixel map typography: exact hosted PNG glyph composition compared visually with SVG preview; five-digit values bounded within badges; segmented output omits digits.
+- Off-happy paths: invalid expression, no search results, narrow width.
+- Actual room integration and live theme change remain untested; user deploys manually.

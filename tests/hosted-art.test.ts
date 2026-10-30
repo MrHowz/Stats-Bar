@@ -107,7 +107,7 @@ test("labels remain local; segmented health omits exact HP, AC and temporary HP"
     "https://stats-bar.pages.dev",
   );
   assert.deepEqual(
-    badges.map((p) => p.key),
+    badges.filter((p) => !p.glyphScale).map((p) => p.key),
     ["temp", "ac"],
   );
 });

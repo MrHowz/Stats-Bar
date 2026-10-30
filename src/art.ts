@@ -1,3 +1,4 @@
+import { pixelText } from "./pixel-font.ts";
 import type { Settings, Stats } from "./model.ts";
 
 const esc = (s: string) =>
@@ -91,15 +92,15 @@ export function barSvg(
     }
   const numbers = options.numbers ?? settings.showNumbers;
   if (numbers && s.maxHp > 0)
-    shape += `<text x="130" y="26.5" text-anchor="middle" font-family="monospace" font-weight="bold" font-size="10" fill="#fff8ec" stroke="#180c0c" stroke-width="2" paint-order="stroke" shape-rendering="auto">${s.hp} / ${s.maxHp}</text>`;
+    shape += pixelText(`${s.hp} / ${s.maxHp}`, 130, 23, 174, 11);
   let badges = "";
   const badgeY = s.maxHp > 0 ? 43 : 0;
   if (s.tempHp > 0) {
     const x = s.ac > 0 ? 168 : 199;
-    badges += `<g transform="translate(${x} ${badgeY})">${badgeShape("temp")}<text x="14" y="17" text-anchor="middle" font-family="monospace" font-weight="bold" font-size="${Math.min(10, 32 / String(s.tempHp).length)}" fill="#f3fff0" stroke="#102b19" stroke-width="1" paint-order="stroke">${s.tempHp}</text></g>`;
+    badges += `<g transform="translate(${x} ${badgeY})">${badgeShape("temp")}${pixelText(String(s.tempHp), 14, 14, 21, 11)}</g>`;
   }
   if (s.ac > 0)
-    badges += `<g transform="translate(199 ${badgeY})">${badgeShape("ac")}<text x="14" y="17" text-anchor="middle" font-family="monospace" font-weight="bold" font-size="${Math.min(10, 32 / String(s.ac).length)}" fill="#f1f6ff" stroke="#182838" stroke-width="1" paint-order="stroke">${s.ac}</text></g>`;
+    badges += `<g transform="translate(199 ${badgeY})">${badgeShape("ac")}${pixelText(String(s.ac), 14, 14, 21, 11)}</g>`;
   const name = options.name
     ? `<text x="116" y="10" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#fff5df" stroke="#10171a" stroke-width="3" paint-order="stroke">${esc(options.name.slice(0, 32))}</text>`
     : "";

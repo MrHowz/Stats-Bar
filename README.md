@@ -1,4 +1,4 @@
-# Pixel Statbar 1.2.0
+# Pixel Statbar 1.2.1
 
 Extension สำหรับ Owlbear Rodeo: แถบ HP พิกเซลกรอบหิน หัวใจแดง และรอยแตกตามระดับพลัง พร้อม HP / Max HP / Temp HP / AC
 
@@ -126,3 +126,12 @@ Pixel Statbar เป็น Extension แยกอิสระ ไม่ใช่
 - https://github.com/owlbear-rodeo/initiative-tracker/blob/main/src/PluginThemeProvider.tsx
 - https://github.com/SeamusFinlayson/owl-trackers/blob/main/src/getTheme.ts
 - https://docs.owlbear.rodeo/extensions/apis/theme/
+
+
+## 1.2.1 UI and numeral correction
+- MUI + OBR Theme API; radius16 follows the official Initiative Tracker example. Owl Trackers and official Dice also use MUI.
+- Transparent full-height panel lets Owlbear supply its own surface; actions stay at the bottom.
+- Original pixel numeral font is bundled for editable stat inputs. The same 5x7 outlines are used by preview SVG and hosted PNG glyphs on the map, including Temp and AC.
+- No custom font installation required on player devices. Names retain a readable normal font.
+- Existing saved settings preserved; default offset stays -12.
+- References: https://github.com/owlbear-rodeo/initiative-tracker/blob/main/src/PluginThemeProvider.tsx ; https://github.com/SeamusFinlayson/owl-trackers/blob/main/src/getTheme.ts ; https://github.com/owlbear-rodeo/dice/blob/main/package.json

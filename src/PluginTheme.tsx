@@ -58,7 +58,7 @@ export function PluginTheme({ children }: { children: ReactNode }) {
                 paper: previewMode === "dark" ? "#3d4051" : "#ffffff",
               },
             },
-        shape: { borderRadius: 12 },
+        shape: { borderRadius: 16 },
         typography: {
           fontFamily: 'Roboto, "Noto Sans Thai", Arial, Tahoma, sans-serif',
           fontSize: 13,
@@ -110,7 +110,7 @@ export function PluginTheme({ children }: { children: ReactNode }) {
       <GlobalStyles
         styles={{
           ":root": {
-            colorScheme: theme.palette.mode,
+            colorScheme: "normal",
             color: theme.palette.text.primary,
             "--muted": theme.palette.text.secondary,
             "--line": theme.palette.divider,
@@ -122,7 +122,7 @@ export function PluginTheme({ children }: { children: ReactNode }) {
           },
           "html, body, #root": { background: "transparent" },
           ".stat-app": {
-            background: theme.palette.background.paper,
+            background: "transparent",
             color: theme.palette.text.primary,
           },
         }}

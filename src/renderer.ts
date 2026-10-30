@@ -155,11 +155,16 @@ export function createRenderer(
             x: position.x + (tile.x * width) / ART_WIDTH,
             y: position.y + (tile.y * width) / ART_WIDTH,
           })
-          .scale({ x: width / ART_WIDTH, y: width / ART_WIDTH })
-          .zIndex(tile.text ? 2 : tile.key === "segments" ? 1 : 0)
+          .scale({
+            x: (width / ART_WIDTH) * (tile.glyphScale ?? 1),
+            y: (width / ART_WIDTH) * (tile.glyphScale ?? 1),
+          })
+          .zIndex(
+            tile.text || tile.glyphScale ? 2 : tile.key === "segments" ? 1 : 0,
+          )
           .textItemType("TEXT")
           .textType("PLAIN")
-          .plainText(tile.text ?? "")
+          .plainText(tile.key === "name" ? (tile.text ?? "") : "")
           .textWidth(tile.width)
           .textHeight(tile.height)
           .textPadding(0)

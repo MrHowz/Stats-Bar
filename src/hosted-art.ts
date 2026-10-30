@@ -1,3 +1,4 @@
+import { glyphFile } from "./pixel-font.ts";
 import type { Settings, Stats } from "./model.ts";
 
 export const ART_WIDTH = 928;
@@ -10,6 +11,7 @@ export interface BarPart {
   width: number;
   height: number;
   text?: string;
+  glyphScale?: number;
   fontSize?: number;
   color?: string;
 }
@@ -105,6 +107,27 @@ export function hostedBarParts(
       40,
       "#fff5df",
     );
+  // Static glyph images keep pixel numerals identical on every player's device.
+  for (const label of parts.filter((part) => part.text)) {
+    if (!label.text || label.key === "name") continue;
+    const text = label.text;
+    const scale = Math.min(44 / 36, (label.width - 28) / (text.length * 28));
+    [...text].forEach((char, i) => {
+      if (char === " ") return;
+      parts.push({
+        key: `${label.key}-digit-${i}`,
+        url: new URL(`${ART_PATH}digit-${glyphFile(char)}.png`, origin).href,
+        x:
+          label.x +
+          (label.width - text.length * 28 * scale) / 2 +
+          i * 28 * scale,
+        y: label.y + (label.height - 36 * scale) / 2,
+        width: 28,
+        height: 36,
+        glyphScale: scale,
+      });
+    });
+  }
   return parts;
 }
 
