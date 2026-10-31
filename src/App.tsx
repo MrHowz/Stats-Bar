@@ -9,7 +9,6 @@ import {
   displayStats,
   editStat,
   healthLabel,
-  readSettings,
   readStats,
 } from "./model";
 import type { Settings, StatField, Stats } from "./model";
@@ -71,7 +70,7 @@ function Bar({
       alt={
         numbers
           ? `HP ${stats.hp}/${stats.maxHp} · Temp HP ${stats.tempHp} · AC ${stats.ac}`
-          : "แถบพลังแบบแบ่งช่วง"
+          : "แถบ HP แบบซ่อนตัวเลข"
       }
     />
   );
@@ -92,12 +91,13 @@ function StatInput({
   const [draft, setDraft] = useState<string | null>(null);
   const [error, setError] = useState("");
   const cancelled = useRef(false);
+  const dirty = useRef(false);
   const commit = () => {
     if (cancelled.current) {
       cancelled.current = false;
       return;
     }
-    if (draft === null) return;
+    if (draft === null || !dirty.current) return;
     const input = draft;
     try {
       editStat(readStats(item), field, input);
@@ -105,6 +105,7 @@ function StatInput({
       setError((e as Error).message);
       return;
     }
+    dirty.current = false;
     setDraft(null);
     setError("");
     safely(updateStats([item.id], (s) => editStat(s, field, input)));
@@ -123,6 +124,7 @@ function StatInput({
         disabled={!canEdit(item, state.viewer) || state.busy}
         onFocus={(e) => e.target.select()}
         onChange={(e) => {
+          dirty.current = true;
           setDraft(e.target.value);
           setError("");
         }}
@@ -152,30 +154,19 @@ function DistanceInput({offset, onChange}: {offset:number; onChange:(offset:numb
  onBlur={()=>{ if(!draft.trim() || !Number.isFinite(Number(draft))) setDraft(String(offset+20)); }}
  onKeyDown={e=>{if(e.key === "Enter") e.currentTarget.blur();}} />;
 }
+function WidthInput({value,onChange}:{value:number;onChange:(value:number)=>void}) {
+ const [draft,setDraft]=useState(value);
+ useEffect(()=>setDraft(value),[value]);
+ return <Input aria-label="ความกว้างแถบ" type="range" min="0.6" max="3" step="0.1" value={draft} onChange={e=>{const next=Number(e.target.value);setDraft(next);onChange(next);}}/>;
+}
 function SettingsPanel() {
   const state = useSyncExternalStore(subscribe, getSnapshot);
-  const [scope, setScope] = useState<"room" | "scene">("scene");
-  const s = scope === "room" ? readSettings(state.roomSettings) : state.settings;
-  const change = (p: Partial<Settings>) => safely(saveSettings(p, scope));
+  const s = state.settings;
+  const change = (p: Partial<Settings>) => safely(saveSettings(p));
   return (
     <section className="settings">
       <h2>ตั้งค่าแถบพลัง</h2>
-      <p className="muted">ค่าของ Scene จะมีผลเหนือค่าของห้อง</p>
-      {scope === "room" && state.sceneSettings != null && <p className="note">Scene นี้มีค่าตั้งแยกไว้ หากต้องการขยับแถบใน Scene นี้ ให้เลือก “Scene นี้” แล้วปรับระยะ</p>}
-      <div className="segmented">
-        <Button
-          className={scope === "scene" ? "active" : ""}
-          onClick={() => setScope("scene")}
-        >
-          Scene นี้
-        </Button>
-        <Button
-          className={scope === "room" ? "active" : ""}
-          onClick={() => setScope("room")}
-        >
-          ทั้งห้อง
-        </Button>
-      </div>
+      <p className="muted">ใช้การตั้งค่าเดียวกันทั้งห้อง</p>
       <label className="setting">
         ตำแหน่ง
         <Select
@@ -190,19 +181,11 @@ function SettingsPanel() {
       </label>
       <label className="setting">
         ความกว้าง <span>{s.width.toFixed(1)}×</span>
-        <Input
-          aria-label="ความกว้างแถบ"
-          type="range"
-          min="0.6"
-          max="3"
-          step="0.1"
-          value={s.width}
-          onChange={(e) => change({ width: Number(e.target.value) })}
-        />
+        <WidthInput value={s.width} onChange={width=>change({width})} />
       </label>
       <label className="setting">
         ระยะห่าง (ติดลบ = ชิดขึ้น)
-        <DistanceInput key={scope} offset={s.offset} onChange={offset=>change({offset})} />
+        <DistanceInput offset={s.offset} onChange={offset=>change({offset})} />
       </label>
       {(
         [
@@ -219,27 +202,6 @@ function SettingsPanel() {
           />
         </label>
       ))}
-      <label className="setting">
-        จำนวนช่วงที่ผู้เล่นเห็น
-        <Select
-          value={s.segments}
-          onChange={(e) => change({ segments: Number(e.target.value) })}
-        >
-          {[4, 5, 10].map((n) => (
-            <option key={n} value={n}>
-              {n} ช่วง
-            </option>
-          ))}
-        </Select>
-      </label>
-      {scope === "scene" && (
-        <Button
-          className="wide subtle"
-          onClick={() => safely(saveSettings(null, "scene"))}
-        >
-          ใช้ค่าจากห้อง
-        </Button>
-      )}
       <Button
         className="wide"
         onClick={() => change({ offset: DEFAULT_SETTINGS.offset })}
@@ -269,11 +231,11 @@ function Visibility({
       className="visibility"
       shortLabels={
         compact
-          ? { public: "เปิดเผย", bar: "ซ่อนเลข", owner: "เจ้าของ", gm: "GM" }
+          ? { public: "เปิดเผย", bar: "ซ่อนเลข", gm: "GM" }
           : undefined
       }
       aria-label={`การมองเห็น ${shortName(item)}`}
-      title="ประเภทการแสดง: เปิดเผยค่าสถานะ / ซ่อนตัวเลขจากผู้เล่นอื่น / เฉพาะเจ้าของ / เฉพาะ GM"
+      title="ประเภทการแสดง: เปิดเผยค่าสถานะ / ซ่อนตัวเลขจากผู้เล่นอื่น / เฉพาะ GM"
       disabled={state.viewer.role !== "GM" || state.busy}
       value={s.visibility}
       onChange={(e) =>
@@ -286,7 +248,6 @@ function Visibility({
     >
       <option value="public">ทุกคนเห็นค่าสถานะ</option>
       <option value="bar">ผู้เล่นอื่นเห็นเฉพาะแถบ HP</option>
-      <option value="owner">เฉพาะเจ้าของโทเคนและ GM</option>
       <option value="gm">เฉพาะ GM</option>
     </Select>
   );
@@ -513,7 +474,6 @@ export default function App() {
                               displayStats(
                                 readStats(item),
                                 "bar",
-                                state.settings.segments,
                               ),
                             )}{" "}
                             · ซ่อนตัวเลข
@@ -538,7 +498,7 @@ export default function App() {
               ? "โหมดทดลอง"
               : "บันทึกในโทเคน"}
         </span>
-        <span>1.3.2</span>
+        <span>1.3.5</span>
       </footer>
       {state.demo &&
         !context &&
@@ -557,7 +517,6 @@ export default function App() {
                     stats={displayStats(
                       readStats(item),
                       mode as "full" | "bar",
-                      state.settings.segments,
                     )}
                     settings={state.settings}
                     numbers={mode === "full"}

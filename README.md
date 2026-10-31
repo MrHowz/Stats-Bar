@@ -159,3 +159,7 @@ Remote-movement synchronization: let native attachments handle pure translation,
 
 ## 1.3.2
 Settled movement checks no longer unconditionally rewrite local bars. Aligned bars are left untouched; positional corrections require the same drift across two quiet checks and a stable token transform. Obsolete render snapshots no longer clear all committed signatures. Signatures commit after local writes, preventing unnecessary redraws during network interpolation. Regression tests check aligned no-op audits, changing interpolation offsets, confirmed drift repair and untouched shared token positions. Live two-client network playback remains to be verified after deployment.
+
+
+## 1.3.5
+Settings now apply to the entire room only. Legacy scene overrides are ignored; room metadata is the sole settings source. Removed the Scene/Room selector and segment-count control. Hidden-number health bars use a continuous normalized HP ratio, with no visible divisions or quantization. Stat values on tokens remain unchanged.

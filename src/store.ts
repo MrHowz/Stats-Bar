@@ -1,5 +1,6 @@
+import { createSettingsWriter } from "./settings-writes";
 import OBR from "@owlbear-rodeo/sdk";
-import type { Item, Metadata } from "@owlbear-rodeo/sdk";
+import type { Item } from "@owlbear-rodeo/sdk";
 import {
   DEFAULT_SETTINGS,
   DEFAULT_STATS,
@@ -21,7 +22,6 @@ export interface State {
   viewer: Viewer;
   settings: Settings;
   roomSettings: unknown;
-  sceneSettings: unknown;
   error: string;
   busy: boolean;
 }
@@ -125,7 +125,6 @@ let state: State = {
   viewer: { role: "GM", id: "preview-player", permissions: demoPermissions },
   settings: DEFAULT_SETTINGS,
   roomSettings: undefined,
-  sceneSettings: undefined,
   error: "",
   busy: false,
 };
@@ -148,14 +147,13 @@ let loadVersion = 0;
 async function refresh() {
   const version = ++loadVersion;
   const sceneReady = await OBR.scene.isReady();
-  const [role, id, permissions, selection, room, scene, items] =
+  const [role, id, permissions, selection, room, items] =
     await Promise.all([
       OBR.player.getRole(),
       OBR.player.getId(),
       OBR.room.getPermissions(),
       OBR.player.getSelection(),
       OBR.room.getMetadata(),
-      sceneReady ? OBR.scene.getMetadata() : Promise.resolve({} as Metadata),
       sceneReady ? OBR.scene.items.getItems() : Promise.resolve([]),
     ]);
   if (version !== loadVersion) return;
@@ -166,8 +164,7 @@ async function refresh() {
     selection: selection || [],
     items: items.filter(isToken),
     roomSettings: room[SETTINGS_KEY],
-    sceneSettings: scene[SETTINGS_KEY],
-    settings: readSettings(room[SETTINGS_KEY], scene[SETTINGS_KEY]),
+    settings: readSettings(room[SETTINGS_KEY]),
   });
 }
 if (!demo)
@@ -190,15 +187,10 @@ if (!demo)
     OBR.room.onMetadataChange((m) =>
       set({
         roomSettings: m[SETTINGS_KEY],
-        settings: readSettings(m[SETTINGS_KEY], state.sceneSettings),
+        settings: readSettings(m[SETTINGS_KEY]),
       }),
     );
-    OBR.scene.onMetadataChange((m) =>
-      set({
-        sceneSettings: m[SETTINGS_KEY],
-        settings: readSettings(state.roomSettings, m[SETTINGS_KEY]),
-      }),
-    );
+
   });
 let writes: Promise<void> = Promise.resolve();
 export function updateStats(ids: string[], fn: (stats: Stats) => Stats) {
@@ -234,7 +226,10 @@ export function updateStats(ids: string[], fn: (stats: Stats) => Stats) {
         await OBR.scene.items.updateItems(ids, (drafts) => {
           for (const item of drafts)
             if (isToken(item) && canEdit(item, { role, id, permissions }))
-              item.metadata[STAT_KEY] = fn(readStats(item));
+              {
+                const before=readStats(item),after=fn(before);
+                if(JSON.stringify(before)!==JSON.stringify(after)) item.metadata[STAT_KEY]=after;
+              }
         });
       }
     } catch (e) {
@@ -280,30 +275,19 @@ export function resetDemo() {
     localStorage.removeItem("pixel-statbar-demo");
   }
 }
-export async function saveSettings(
-  patch: Partial<Settings> | null,
-  scope: "room" | "scene",
-) {
-  if (state.viewer.role !== "GM") throw new Error("เฉพาะ GM เท่านั้น");
-  const previous = scope === "room" ? state.roomSettings : state.sceneSettings;
-  const next =
-    patch === null
-      ? undefined
-      : {
-          ...(previous && typeof previous === "object" ? previous : {}),
-          ...patch,
-        };
-  if (demo) {
-    const room = scope === "room" ? next : state.roomSettings;
-    const scene = scope === "scene" ? next : state.sceneSettings;
-    set({
-      roomSettings: room,
-      sceneSettings: scene,
-      settings: readSettings(room, scene),
-    });
-  } else {
-    if ((await OBR.player.getRole()) !== "GM")
-      throw new Error("เฉพาะ GM เท่านั้น");
-    await OBR[scope].setMetadata({ [SETTINGS_KEY]: next });
-  }
+async function writeSettings(patch: Partial<Settings>|null, reset=false) {
+ if(state.viewer.role!=="GM") throw new Error("เฉพาะ GM เท่านั้น");
+ const previous=demo?state.roomSettings:(await OBR.room.getMetadata())[SETTINGS_KEY];
+ const next=patch===null?undefined:{...(!reset&&previous&&typeof previous==="object"?previous:{}),...patch};
+ if(JSON.stringify(previous)===JSON.stringify(next))return;
+ if(demo)set({roomSettings:next,settings:readSettings(next)});
+ else {
+  if(await OBR.player.getRole()!=="GM")throw new Error("เฉพาะ GM เท่านั้น");
+  await OBR.room.setMetadata({[SETTINGS_KEY]:next});
+ }
+}
+const settingsWriter=createSettingsWriter<Settings>((_scope,patch,reset)=>writeSettings(patch,reset));
+export function saveSettings(patch:Partial<Settings>|null) {
+ if(demo)return writeSettings(patch);
+ return settingsWriter("room",patch);
 }

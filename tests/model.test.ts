@@ -72,7 +72,7 @@ const owner = {
 const viewer = { ...owner, permissions: [...owner.permissions] };
 test("GM, owner, segmented and hidden-token visibility", () => {
   assert.equal(access(item("gm"), viewer), "none");
-  assert.equal(access(item("owner"), viewer), "full");
+  assert.equal(access(item("owner"), viewer), "none");
   assert.equal(access(item("owner"), { ...viewer, id: "other" }), "none");
   assert.equal(access(item("bar"), { ...viewer, id: "other" }), "bar");
   assert.equal(access(item("public", false), viewer), "none");
@@ -94,13 +94,13 @@ test("edits enforce layer permission, ownership, and visibility", () => {
 });
 test("segmented output cannot expose exact hp, AC, or temp values", () => {
   const result = displayStats({ ...stats, hp: 13 }, "bar", 4);
-  assert.equal(result.hp, 2);
-  assert.equal(result.maxHp, 4);
+  assert.equal(result.hp, 13/40);
+  assert.equal(result.maxHp, 1);
   assert.equal(result.ac, 0);
   assert.equal(result.tempHp, 0);
   assert.equal(displayStats({ ...stats, hp: 0 }, "bar", 4).hp, 0);
 });
-test("untrusted metadata is normalized and scene settings override room settings", () => {
+test("untrusted metadata is normalized and legacy scene settings cannot override room settings", () => {
   assert.equal(
     readStats({
       metadata: {
@@ -117,7 +117,7 @@ test("untrusted metadata is normalized and scene settings override room settings
   const s = readSettings({ width: 2, decay: false }, { showNames: true });
   assert.equal(s.width, 2);
   assert.equal(s.decay, false);
-  assert.equal(s.showNames, true);
+  assert.equal(s.showNames, false);
   assert.equal(readSettings({ width: Infinity }).width, 1.5);
   assert.equal(readSettings({}).offset, -20);
   assert.equal(readSettings({ offset: 2 }).offset, 2);
@@ -131,4 +131,18 @@ test("only Character images qualify as statbar tokens", () => {
   assert.equal(isToken({type:"IMAGE",layer,metadata:{}} as Item),layer === "CHARACTER");
  }
  assert.equal(isToken({type:"TEXT",layer:"CHARACTER",metadata:{}} as Item),false);
+});
+
+test("legacy owner-only settings fall back to GM without revealing stats",()=>{
+ assert.equal(readStats(item("owner")).visibility,"gm");
+ assert.equal(access(item("owner"),viewer),"none");
+ assert.equal(access(item("owner"),{...viewer,role:"GM"}),"full");
+});
+
+test("room settings are the only source and legacy segment counts do not affect health ratio",()=>{
+ const room=readSettings({offset:10,width:2,segments:4},{offset:80,width:3,showNumbers:false});
+ assert.equal(room.offset,10);assert.equal(room.width,2);assert.equal(room.showNumbers,true);
+ const raw={...stats,hp:17,maxHp:50};
+ assert.equal(displayStats(raw,"bar",4).hp,17/50);
+ assert.equal(displayStats(raw,"bar",10).hp,17/50);
 });

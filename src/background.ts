@@ -27,6 +27,5 @@ OBR.onReady(() => {
   OBR.scene.items.onChange(renderer.schedule);
   OBR.scene.grid.onChange(renderer.schedule);
   OBR.player.onChange(renderer.schedule);
-  OBR.scene.onMetadataChange(renderer.schedule);
   OBR.room.onMetadataChange(renderer.schedule);
 });

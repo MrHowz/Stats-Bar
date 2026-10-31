@@ -4,14 +4,14 @@ import { Box, MenuList, MenuItem, Typography, Alert, Button } from "@mui/materia
 import { getSnapshot, subscribe, setVisibility } from "./store";
 import { readStats, type Visibility } from "./model";
 export const VISIBILITY_LABELS: Record<Visibility,string> = {
- public:"ทุกคนเห็นค่าสถานะ", bar:"ผู้เล่นอื่นเห็นเฉพาะแถบ HP", owner:"เฉพาะเจ้าของโทเคนและ GM", gm:"เฉพาะ GM"
+ public:"ทุกคนเห็นค่าสถานะ", bar:"ผู้เล่นอื่นเห็นเฉพาะแถบ HP", gm:"เฉพาะ GM"
 };
 const POPOVER_ID = "com.pixel-statbar/visibility";
 export async function openVisibilityPopover(tokenId:string) {
  const url = `/?visibility=1&token=${encodeURIComponent(tokenId)}`;
  if (!OBR.isAvailable) { location.assign(url); return; }
  const [width,height] = await Promise.all([OBR.viewport.getWidth(),OBR.viewport.getHeight()]);
- await OBR.popover.open({id:POPOVER_ID,url,width:320,height:268,anchorReference:"POSITION",anchorPosition:{left:width/2,top:height/2},transformOrigin:{horizontal:"CENTER",vertical:"CENTER"}});
+ await OBR.popover.open({id:POPOVER_ID,url,width:320,height:228,anchorReference:"POSITION",anchorPosition:{left:width/2,top:height/2},transformOrigin:{horizontal:"CENTER",vertical:"CENTER"}});
 }
 export default function VisibilityPopover() {
  const state=useSyncExternalStore(subscribe,getSnapshot);

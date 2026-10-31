@@ -70,18 +70,17 @@ export function createRenderer(
       return false;
     };
     if (!active) return;
-    const [items, local, role, id, room, scene, dpi] = await Promise.all([
+    const [items, local, role, id, room, dpi] = await Promise.all([
       OBR.scene.items.getItems(),
       OBR.scene.local.getItems(),
       OBR.player.getRole(),
       OBR.player.getId(),
       OBR.room.getMetadata(),
-      OBR.scene.getMetadata(),
       OBR.scene.grid.getDpi(),
     ]);
     if (stale()) return;
     const pendingSignatures = new Map<string,string>();
-    const settings = readSettings(room[SETTINGS_KEY], scene[SETTINGS_KEY]);
+    const settings = readSettings(room[SETTINGS_KEY]);
     const overlays = local.filter((i) => i.metadata[OVERLAY_KEY]) as OBRImage[];
     const byToken = new Map<string, OBRImage[]>();
     for (const overlay of overlays) {
@@ -102,7 +101,7 @@ export function createRenderer(
         (!raw.maxHp && !raw.tempHp && !raw.ac)
       )
         continue;
-      const stats = displayStats(raw, mode, settings.segments);
+      const stats = displayStats(raw, mode);
       const name = settings.showNames ? stats.name || token.name : undefined;
       const options = {
         numbers: mode === "full" && settings.showNumbers,

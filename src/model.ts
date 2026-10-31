@@ -4,7 +4,7 @@ export const ID = "com.pixel-statbar";
 export const STAT_KEY = `${ID}/stats`;
 export const SETTINGS_KEY = `${ID}/settings`;
 export const OVERLAY_KEY = `${ID}/overlay`;
-export type Visibility = "public" | "bar" | "owner" | "gm";
+export type Visibility = "public" | "bar" | "gm";
 export type StatField = "hp" | "maxHp" | "tempHp" | "ac";
 export interface Stats {
   hp: number;
@@ -22,7 +22,6 @@ export interface Settings {
   showNumbers: boolean;
   showNames: boolean;
   decay: boolean;
-  segments: number;
 }
 export interface Viewer {
   role: "GM" | "PLAYER";
@@ -45,7 +44,6 @@ export const DEFAULT_SETTINGS: Settings = {
   showNumbers: true,
   showNames: false,
   decay: false,
-  segments: 4,
 };
 const record = (v: unknown): Record<string, unknown> =>
   v !== null && typeof v === "object" ? (v as Record<string, unknown>) : {};
@@ -61,15 +59,15 @@ export function readStats(item: Pick<Item, "metadata">): Stats {
     maxHp,
     tempHp: numeric(s.tempHp),
     ac: numeric(s.ac),
-    visibility: ["public", "bar", "owner", "gm"].includes(String(s.visibility))
+    visibility: s.visibility === "owner" ? "gm" : ["public", "bar", "gm"].includes(String(s.visibility))
       ? (s.visibility as Visibility)
       : "public",
     name: typeof s.name === "string" ? s.name.slice(0, 60) : "",
     controllerId: typeof s.controllerId === "string" ? s.controllerId : "",
   };
 }
-export function readSettings(room: unknown, scene?: unknown): Settings {
-  const r = { ...record(room), ...record(scene) };
+export function readSettings(room: unknown, _legacyScene?: unknown): Settings {
+  const r = record(room);
   return {
     position: r.position === "below" ? "below" : "above",
     width:
@@ -83,7 +81,6 @@ export function readSettings(room: unknown, scene?: unknown): Settings {
     showNumbers: typeof r.showNumbers === "boolean" ? r.showNumbers : true,
     showNames: typeof r.showNames === "boolean" ? r.showNames : false,
     decay: false,
-    segments: [4, 5, 10].includes(Number(r.segments)) ? Number(r.segments) : 4,
   };
 }
 export const isToken = (i: Item) =>
@@ -97,7 +94,6 @@ export function access(i: Item, v: Viewer): "full" | "bar" | "none" {
   if (!i.visible) return "none";
   const visibility = readStats(i).visibility;
   if (visibility === "gm") return "none";
-  if (visibility === "owner") return owns(i, v) ? "full" : "none";
   return visibility === "bar" && !owns(i, v) ? "bar" : "full";
 }
 export function canEdit(i: Item, v: Viewer): boolean {
@@ -204,13 +200,13 @@ export function healthLabel(s: Stats): string {
 export function displayStats(
   s: Stats,
   mode: "full" | "bar",
-  segments: number,
+  _legacySegments?: number,
 ): Stats {
   return mode === "bar"
     ? {
         ...s,
-        hp: s.hp > 0 ? Math.ceil((s.hp / Math.max(1, s.maxHp)) * segments) : 0,
-        maxHp: segments,
+        hp: s.maxHp > 0 ? Math.min(1, Math.max(0, s.hp / s.maxHp)) : 0,
+        maxHp: s.maxHp > 0 ? 1 : 0,
         tempHp: 0,
         ac: 0,
       }
