@@ -5,7 +5,7 @@ export const STAT_KEY = `${ID}/stats`;
 export const SETTINGS_KEY = `${ID}/settings`;
 export const OVERLAY_KEY = `${ID}/overlay`;
 export type Visibility = "public" | "bar" | "gm";
-export type BarStyle = "pixel" | "green-flame";
+export type BarStyle = "pixel";
 export type StatField = "hp" | "maxHp" | "tempHp" | "ac";
 export interface Stats {
   style: BarStyle;
@@ -58,7 +58,8 @@ export function readStats(item: Pick<Item, "metadata">): Stats {
   const s = record(item.metadata[STAT_KEY]);
   const maxHp = numeric(s.maxHp);
   return {
-    style: s.style === "green-flame" ? "green-flame" : "pixel",
+    // Removed or unknown styles use the existing classic bar without losing stats.
+    style: "pixel",
     hp: maxHp > 0 ? Math.min(numeric(s.hp), maxHp) : numeric(s.hp),
     maxHp,
     tempHp: numeric(s.tempHp),

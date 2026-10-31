@@ -36,15 +36,15 @@ function Icon({
   kind: "heart" | "shield" | "spark" | "gear" | "eye" | "cross";
 }) {
   const paths = {
-    heart: "M3 3h5v3h4V3h5v3h2v7h-4v4h-3v3H8v-3H5v-4H1V6h2z",
-    shield: "M3 2h14v12l-7 6-7-6z M7 6h6v6l-3 3-3-3z",
-    spark: "M9 0h2v7h7v2h-7v9H9V9H2V7h7z",
-    gear: "M7 1h6v4h4v3h3v5h-3v4h-4v3H7v-3H3v-4H0V8h3V5h4z M7 8v5h6V8z",
-    eye: "M0 8h3V5h4V3h6v2h4v3h3v5h-3v3h-4v2H7v-2H3v-3H0z M7 7v7h6V7z",
-    cross: "M4 2l6 6 6-6 3 3-6 6 6 6-3 3-6-6-6 6-3-3 6-6-6-6z",
+    heart: "M12 21C9 18.4 3 14 3 8.8A4.8 4.8 0 0 1 12 6a4.8 4.8 0 0 1 9 2.8C21 14 15 18.4 12 21Z",
+    shield: "M12 2 3 6v6c0 5 5 9 9 10 4-1 9-5 9-10V6L12 2Zm0 3 6 3v4c0 3.3-3.2 6.3-6 7.5C9.2 18.3 6 15.3 6 12V8l6-3Z",
+    spark: "M11 3h2v8h8v2h-8v8h-2v-8H3v-2h8Z",
+    gear: "M9.5 2h5l.7 3a8 8 0 0 1 1.7 1l2.9-.9 2.5 4.3-2.2 2.1v1l2.2 2.1-2.5 4.3-2.9-.9a8 8 0 0 1-1.7 1l-.7 3h-5l-.7-3a8 8 0 0 1-1.7-1l-2.9.9-2.5-4.3 2.2-2.1v-1L1.7 9.4l2.5-4.3 2.9.9a8 8 0 0 1 1.7-1l.7-3ZM12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z",
+    eye: "M12 4C6.5 4 2 8 0 12c2 4 6.5 8 12 8s10-4 12-8c-2-4-6.5-8-12-8Zm0 3a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 3a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z",
+    cross: "m5 3 7 7 7-7 2 2-7 7 7 7-2 2-7-7-7 7-2-2 7-7-7-7Z",
   };
   return (
-    <svg className="icon" viewBox="0 0 22 22" aria-hidden="true">
+    <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
       <path fill="currentColor" fillRule="evenodd" d={paths[kind]} />
     </svg>
   );
@@ -94,7 +94,7 @@ function StatInput({
     safely(updateStats([item.id], (s) => editStat(s, field, input)));
   };
   return (
-    <label className={`stat-input ${field}`}>
+    <label className={`stat-input ${field} ${(draft ?? String(value)).length > 3 ? "long-value" : ""}`}>
       <span>
         <Icon kind={icon} />
         {label}
@@ -474,7 +474,7 @@ export default function App() {
               ? "โหมดทดลอง"
               : "บันทึกในโทเคน"}
         </span>
-        <span>1.4.0</span>
+        <span>1.4.1</span>
       </footer>
       {state.demo &&
         !context &&

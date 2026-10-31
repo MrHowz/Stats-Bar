@@ -27,7 +27,6 @@ export function hostedBarParts(
   origin: string,
 ): BarPart[] {
   const top = options.name ? 56 : 0;
-  const flame = stats.style === "green-flame";
   const parts: BarPart[] = [];
   const add = (
     key: string,
@@ -40,35 +39,31 @@ export function hostedBarParts(
     fontSize = 32,
     color = "#fff8ec",
   ) => {
-    const url = new URL((flame && file !== "name" ? "/styles/green-flame-v1/" : ART_PATH) + file + ".png", origin).href;
+    const url = new URL(ART_PATH + file + ".png", origin).href;
     if (!/^https?:\/\//.test(url) || url.length > 2048)
       throw new Error("Invalid hosted artwork URL");
     parts.push({ key, url, x, y, width, height, text, fontSize, color });
   };
   if (stats.maxHp > 0) {
     const p = Math.min(1, Math.max(0, stats.hp / stats.maxHp));
-    add("frame", "frame", 0, top, 928, flame ? 309 : 184);
-    if (flame) {
-      parts[parts.length - 1].zIndex = 2;
-      add("track", "track", 276, top + 151, 594, 44);
-    }
+    add("frame", "frame", 0, top, 928, 184);
     if (p > 0) {
-      add("fill", "fill", flame ? 276 : 164, top + (flame ? 151 : 52), flame ? 594 : 708, flame ? 44 : 80);
+      add("fill", "fill", 164, top + 52, 708, 80);
       parts[parts.length - 1].scaleX = p;
     }
     if (options.numbers)
       add(
         "hp",
         "hp",
-        flame ? 276 : 164,
-        top + (flame ? 155 : 60),
-        flame ? 594 : 712,
-        flame ? 36 : 64,
+        164,
+        top + 60,
+        712,
+        64,
         `${stats.hp} / ${stats.maxHp}`,
         40,
       );
   }
-  const badgeY = top + (stats.maxHp > 0 ? (flame ? 264 : 172) : 0);
+  const badgeY = top + (stats.maxHp > 0 ? 172 : 0);
   if (stats.tempHp > 0)
     add(
       "temp",
@@ -109,7 +104,7 @@ export function hostedBarParts(
   for (const label of parts.filter((part) => part.text)) {
     if (!label.text || label.key === "name") continue;
     const text = label.text;
-    const scale = Math.min((label.key === "hp" ? (flame ? 40 : 64) : 80) / 36, (label.width - (label.key === "hp" ? 28 : 64)) / (text.length * 28));
+    const scale = Math.min((label.key === "hp" ? 64 : 80) / 36, (label.width - (label.key === "hp" ? 28 : 64)) / (text.length * 28));
     [...text].forEach((char, i) => {
       if (char === " ") return;
       parts.push({
@@ -130,10 +125,8 @@ export function hostedBarParts(
 }
 
 export function barHeight(stats: Stats, hasName: boolean): number {
-  const frameHeight = stats.style === "green-flame" ? 309 : 184;
-  const withBadges = stats.style === "green-flame" ? 456 : 364;
   return (
     (hasName ? 56 : 0) +
-    (stats.tempHp > 0 || stats.ac > 0 ? (stats.maxHp > 0 ? withBadges : 192) : frameHeight)
+    (stats.tempHp > 0 || stats.ac > 0 ? (stats.maxHp > 0 ? 364 : 192) : 184)
   );
 }

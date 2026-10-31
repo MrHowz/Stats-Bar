@@ -147,15 +147,15 @@ test("room settings are the only source and legacy segment counts do not affect 
  assert.equal(displayStats(raw,"bar",10).hp,17/50);
 });
 
-test("style is per token, defaults safely for old metadata and survives stat edits", () => {
- const original = item();
- assert.equal(readStats(original).style,"pixel");
- const flame = structuredClone(original);
- (flame.metadata[STAT_KEY] as Record<string,unknown>).style = "green-flame";
- assert.equal(readStats(flame).style,"green-flame");
- assert.equal(readStats(original).style,"pixel");
- assert.equal(editStat(readStats(flame),"hp","-3").style,"green-flame");
- assert.equal(displayStats(readStats(flame),"bar").style,"green-flame");
- (flame.metadata[STAT_KEY] as Record<string,unknown>).style = "https://untrusted.example/asset.png";
- assert.equal(readStats(flame).style,"pixel");
+test("removed and unknown styles use the classic bar and preserve saved stats", () => {
+ const original=item();
+ for (const style of [undefined,"pixel","green-flame","https://untrusted.example/asset.png"]) {
+  const legacy=structuredClone(original);
+  (legacy.metadata[STAT_KEY] as Record<string,unknown>).style=style;
+  const s=readStats(legacy);
+  assert.equal(s.style,"pixel");
+  assert.deepEqual({...s},readStats(original));
+  assert.equal(editStat(s,"hp","-3").hp,s.hp-3);
+  assert.equal(displayStats(s,"bar").style,"pixel");
+ }
 });

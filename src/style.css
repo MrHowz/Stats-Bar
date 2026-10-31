@@ -39,7 +39,6 @@ p {
 }
 .app-header > img {
   width: 24px;
-  image-rendering: pixelated;
 }
 .app-header > strong {
   font-size: 14px;
@@ -254,14 +253,6 @@ p {
 .name-line input {
   padding: 5px 7px;
 }
-.compact-editor > .pixelbar {
-  display: block;
-  width: 100%;
-  height: 57px;
-  object-fit: contain;
-  margin: 4px 0;
-  image-rendering: pixelated;
-}
 .compact-fields {
   display: grid;
   grid-template-columns: 1fr 5px 1fr 1fr 1fr;
@@ -399,11 +390,6 @@ html.context body {
 .demo-preview small {
   color: var(--muted);
 }
-.pixelbar {
-  display: block;
-  width: 100%;
-  image-rendering: pixelated;
-}
 .table-app {
   max-width: 540px;
   margin: auto;
@@ -466,8 +452,7 @@ html:not(.context) #root {
   font-weight: 700;
 }
 
-@font-face { font-family: "Pixel Stat Digits"; src: url("/fonts/pixel-stat-digits.ttf") format("truetype"); font-weight: 100 900; font-display: swap; unicode-range: U+0030-0039; }
-.stat-input input, .batch-controls input { font-family: "Pixel Stat Digits", Roboto, "Noto Sans Thai", sans-serif; font-weight: 400; }
+.stat-input input, .batch-controls input { font-family: Roboto, "Noto Sans Thai", Arial, Tahoma, sans-serif; font-weight: 500; font-variant-numeric:tabular-nums; }
 
 /* Give editable stats most of the row; full names remain available on hover. */
 .stats-row { grid-template-columns: minmax(45px, .8fr) 80px minmax(42px,1fr) 4px minmax(42px,1fr) minmax(42px,1fr) minmax(42px,1fr); }
@@ -513,3 +498,4 @@ html:not(.context) #root {
 .access-line > .style-trigger { flex:1; }
 .app-header > img { image-rendering:auto; }
 .context-app .style-line { margin-bottom:6px; }
+.table-app .stat-input.long-value input, .context-app .stat-input.long-value input { font-size:13px; }

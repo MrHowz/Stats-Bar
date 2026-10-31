@@ -5,13 +5,13 @@ import { canEdit, DEFAULT_SETTINGS, DEFAULT_STATS, readStats, type BarStyle } fr
 import { getSnapshot, subscribe, updateStats } from "./store";
 import BarPreview from "./BarPreview";
 
-export const STYLE_LABELS: Record<BarStyle, string> = {pixel: "หินพิกเซล", "green-flame": "เปลวไฟวิญญาณ"};
+export const STYLE_LABELS: Record<BarStyle, string> = {pixel: "คลาสสิก"};
 const POPOVER_ID = "com.pixel-statbar/style";
 export async function openStylePopover(tokenId: string) {
   const url = `/?style=1&token=${encodeURIComponent(tokenId)}`;
   if (!OBR.isAvailable) { location.assign(url); return; }
   const [width, height] = await Promise.all([OBR.viewport.getWidth(), OBR.viewport.getHeight()]);
-  await OBR.popover.open({id: POPOVER_ID, url, width: 380, height: 440,
+  await OBR.popover.open({id: POPOVER_ID, url, width: 380, height: 280,
     anchorReference: "POSITION", anchorPosition: {left: width / 2, top: height / 2},
     transformOrigin: {horizontal: "CENTER", vertical: "CENTER"}});
 }

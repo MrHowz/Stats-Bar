@@ -1,6 +1,6 @@
 {
   "name": "Stat Bar",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "manifest_version": 1,
   "description": "Customizable character health bars with HP, temporary HP, AC and per-token styles.",
   "icon": "/stat-bar-icon.svg",

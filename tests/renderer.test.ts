@@ -141,24 +141,20 @@ function fixture() {
   };
 }
 
-test("changing one token's style reuses overlays and removes obsolete flame parts on return",async()=>{
+test("removed flame overlays migrate to classic while preserving the token stats",async()=>{
  const f=fixture();
  const token=f.getItems()[0];
- const sibling=structuredClone(token);sibling.id="sibling";
- f.getItems().push(sibling);
+ (token.metadata[STAT_KEY] as Record<string,unknown>).style="green-flame";
+ const saved=structuredClone(token.metadata[STAT_KEY]);
+ f.getLocal().push({id:"old-frame",type:"IMAGE",attachedTo:token.id,image:{url:"https://example.com/styles/green-flame-v1/frame.png"},metadata:{[OVERLAY_KEY]:{part:"frame"}}} as Image);
+ f.getLocal().push({id:"old-track",type:"IMAGE",attachedTo:token.id,metadata:{[OVERLAY_KEY]:{part:"track"}}} as Image);
  const renderer=createRenderer(f.api,f.builder,(s,settings,options)=>hostedBarParts(s,settings,options,"https://example.com"));
  renderer.setReady(true);await renderer.flushNow();
- const frame=f.getLocal().find(i=>i.attachedTo==="token"&&(i.metadata[OVERLAY_KEY] as {part:string}).part==="frame")!;
- (token.metadata[STAT_KEY] as Record<string,unknown>).style="green-flame";
- await renderer.flushNow();
- const changed=f.getLocal().find(i=>i.id===frame.id) as Image;
- assert.match(changed.image.url,/styles\/green-flame-v1\/frame.png$/);
- assert.ok(f.getLocal().filter(i=>i.attachedTo==="sibling").every(i=>!(i as Image).image.url.includes("green-flame")));
- assert.ok(f.getLocal().some(i=>i.attachedTo==="token"&&(i.metadata[OVERLAY_KEY] as {part:string}).part==="track"));
- (token.metadata[STAT_KEY] as Record<string,unknown>).style="pixel";
- await renderer.flushNow();
- assert.ok(!f.getLocal().some(i=>(i.metadata[OVERLAY_KEY] as {part:string}).part==="track"));
- assert.match((f.getLocal().find(i=>i.id===frame.id) as Image).image.url,/bars-v7\/frame.png$/);
+ const frame=f.getLocal().find(i=>i.id==="old-frame") as Image;
+ assert.match(frame.image.url,/bars-v7\/frame.png$/);
+ assert.ok(!f.getLocal().some(i=>i.id==="old-track"));
+ assert.ok(f.getLocal().every(i=>!(i as Image).image.url.includes("green-flame")));
+ assert.deepEqual(token.metadata[STAT_KEY],saved);
  renderer.setReady(false);
 });
 test("renderer attaches one local bar, reuses it for HP and movement, and cleans up removed tokens", async () => {
