@@ -489,3 +489,5 @@ html:not(.context) #root {
 .context-app .stat-input > .control-input { height: 40px; }
 .context-app .stat-input input { font-size: 17px; }
 .context-app .stat-input > span { font-size: 11px; }
+
+.context-app .visibility .MuiNativeSelect-select { font-size: 11px; padding: 6px 24px 6px 8px; }

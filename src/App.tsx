@@ -265,6 +265,7 @@ function Visibility({
   return (
     <Select
       className="visibility"
+      nativeChoices={!compact}
       shortLabels={
         compact
           ? { public: "เปิดเผย", bar: "ซ่อนเลข", owner: "เจ้าของ", gm: "GM" }
@@ -536,7 +537,7 @@ export default function App() {
               ? "โหมดทดลอง"
               : "บันทึกในโทเคน"}
         </span>
-        <span>1.2.9</span>
+        <span>1.2.10</span>
       </footer>
       {state.demo &&
         !context &&

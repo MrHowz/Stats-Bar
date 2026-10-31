@@ -19,7 +19,7 @@ OBR.onReady(() => {
           ],
         },
       })),
-      embed: { url: "/index.html?context=1", height: 180 },
+      embed: { url: "/index.html?context=1", height: 156 },
     })
     .catch(console.error);
   OBR.scene.onReadyChange(renderer.setReady);

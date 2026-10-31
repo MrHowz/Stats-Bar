@@ -59,11 +59,13 @@ export function Input(props: InputHTMLAttributes<HTMLInputElement>) {
 export function Select(
   props: SelectHTMLAttributes<HTMLSelectElement> & {
     shortLabels?: Record<string, string>;
+    nativeChoices?: boolean;
   },
 ) {
   return (
     <MuiSelect
       className={props.className}
+      native={props.nativeChoices}
       value={props.value as string | number}
       renderValue={
         props.shortLabels
@@ -79,7 +81,7 @@ export function Select(
       }
       MenuProps={{ disableScrollLock: true }}
     >
-      {Children.map(props.children, (child) =>
+      {props.nativeChoices ? props.children : Children.map(props.children, (child) =>
         isValidElement<OptionHTMLAttributes<HTMLOptionElement>>(child) ? (
           <MenuItem value={child.props.value as string | number}>
             {child.props.children}
