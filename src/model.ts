@@ -39,7 +39,7 @@ export const DEFAULT_STATS: Stats = {
 };
 export const DEFAULT_SETTINGS: Settings = {
   position: "above",
-  width: 1.5,
+  width: 1.0,
   offset: -20,
   showNumbers: true,
   showNames: false,
@@ -73,7 +73,7 @@ export function readSettings(room: unknown, _legacyScene?: unknown): Settings {
     width:
       typeof r.width === "number" && Number.isFinite(r.width)
         ? Math.max(0.6, Math.min(3, r.width))
-        : 1.5,
+        : DEFAULT_SETTINGS.width,
     offset:
       typeof r.offset === "number" && Number.isFinite(r.offset)
         ? Math.max(-100, Math.min(100, r.offset))

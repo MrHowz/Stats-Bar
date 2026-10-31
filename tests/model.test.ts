@@ -118,7 +118,7 @@ test("untrusted metadata is normalized and legacy scene settings cannot override
   assert.equal(s.width, 2);
   assert.equal(s.decay, false);
   assert.equal(s.showNames, false);
-  assert.equal(readSettings({ width: Infinity }).width, 1.5);
+  assert.equal(readSettings({ width: Infinity }).width, 1.0);
   assert.equal(readSettings({}).offset, -20);
   assert.equal(readSettings({ offset: 2 }).offset, 2);
   assert.equal(readSettings({ offset: -20 }).offset, -20);
