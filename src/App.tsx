@@ -1,5 +1,5 @@
 import { Input, Select, Button } from "./controls";
-import { useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { Item, Image as OBRImage } from "@owlbear-rodeo/sdk";
 import {
   DEFAULT_SETTINGS,
@@ -8,6 +8,7 @@ import {
   displayStats,
   editStat,
   healthLabel,
+  readSettings,
   readStats,
 } from "./model";
 import type { Settings, StatField, Stats } from "./model";
@@ -142,15 +143,24 @@ function StatInput({
     </label>
   );
 }
+function DistanceInput({offset, onChange}: {offset:number; onChange:(offset:number)=>void}) {
+ const [draft,setDraft] = useState(String(offset+20));
+ useEffect(()=>setDraft(String(offset+20)),[offset]);
+ return <Input aria-label="ระยะห่างแถบ" type="number" min="-80" max="120" value={draft}
+ onChange={e=>{ const value=e.target.value; setDraft(value); if(value.trim() && Number.isFinite(Number(value))) onChange(Number(value)-20); }}
+ onBlur={()=>{ if(!draft.trim() || !Number.isFinite(Number(draft))) setDraft(String(offset+20)); }}
+ onKeyDown={e=>{if(e.key === "Enter") e.currentTarget.blur();}} />;
+}
 function SettingsPanel() {
   const state = useSyncExternalStore(subscribe, getSnapshot);
   const [scope, setScope] = useState<"room" | "scene">("scene");
-  const s = state.settings;
+  const s = scope === "room" ? readSettings(state.roomSettings) : state.settings;
   const change = (p: Partial<Settings>) => safely(saveSettings(p, scope));
   return (
     <section className="settings">
       <h2>ตั้งค่าแถบพลัง</h2>
       <p className="muted">ค่าของ Scene จะมีผลเหนือค่าของห้อง</p>
+      {scope === "room" && state.sceneSettings != null && <p className="note">Scene นี้มีค่าตั้งแยกไว้ หากต้องการขยับแถบใน Scene นี้ ให้เลือก “Scene นี้” แล้วปรับระยะ</p>}
       <div className="segmented">
         <Button
           className={scope === "scene" ? "active" : ""}
@@ -191,21 +201,7 @@ function SettingsPanel() {
       </label>
       <label className="setting">
         ระยะห่าง (ติดลบ = ชิดขึ้น)
-        <Input
-          aria-label="ระยะห่างแถบ"
-          type="number"
-          min="-100"
-          max="100"
-          key={s.offset}
-          defaultValue={s.offset + 20}
-          onBlur={(e) => {
-            if (Number.isFinite(e.target.valueAsNumber))
-              change({ offset: e.target.valueAsNumber - 20 });
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") e.currentTarget.blur();
-          }}
-        />
+        <DistanceInput key={scope} offset={s.offset} onChange={offset=>change({offset})} />
       </label>
       {(
         [
@@ -271,11 +267,11 @@ function Visibility({
       className="visibility"
       shortLabels={
         compact
-          ? { public: "ทุกคน", bar: "แบ่งช่วง", owner: "เจ้าของ", gm: "GM" }
+          ? { public: "เปิดเผย", bar: "ซ่อนเลข", owner: "เจ้าของ", gm: "GM" }
           : undefined
       }
       aria-label={`การมองเห็น ${shortName(item)}`}
-      title="การมองเห็น: ทั้งหมด / แบ่งช่วง / เจ้าของ / GM"
+      title="ประเภทการแสดง: เปิดเผยค่าสถานะ / ซ่อนตัวเลขจากผู้เล่นอื่น / เฉพาะเจ้าของ / เฉพาะ GM"
       disabled={state.viewer.role !== "GM" || state.busy}
       value={s.visibility}
       onChange={(e) =>
@@ -286,9 +282,9 @@ function Visibility({
         )
       }
     >
-      <option value="public">ทุกคนเห็นตัวเลข</option>
-      <option value="bar">เห็นแถบแบ่งช่วง</option>
-      <option value="owner">เจ้าของและ GM</option>
+      <option value="public">ทุกคนเห็นค่าสถานะ</option>
+      <option value="bar">ผู้เล่นอื่นเห็นเฉพาะแถบ HP</option>
+      <option value="owner">เฉพาะเจ้าของโทเคนและ GM</option>
       <option value="gm">เฉพาะ GM</option>
     </Select>
   );
@@ -352,7 +348,7 @@ function CompactEditor({ item }: { item: Item }) {
         <Fields item={item} />
       </div>
       <div className="access-line">
-        <span>ผู้เล่นเห็น</span>
+        <span>ประเภท</span>
         <Visibility item={item} />
       </div>
     </section>
@@ -460,7 +456,7 @@ export default function App() {
                     />{" "}
                     โทเคน
                   </span>
-                  <span role="columnheader">ผู้เล่นเห็น</span>
+                  <span role="columnheader">ประเภท</span>
                   <span role="columnheader">HP</span>
                   <span />
                   <span role="columnheader">MAX</span>
@@ -540,7 +536,7 @@ export default function App() {
               ? "โหมดทดลอง"
               : "บันทึกในโทเคน"}
         </span>
-        <span>1.2.6</span>
+        <span>1.2.9</span>
       </footer>
       {state.demo &&
         !context &&

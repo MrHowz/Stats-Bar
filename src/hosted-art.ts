@@ -20,7 +20,7 @@ export interface BarPart {
 // local Owlbear text, rather than being sent to an image generation service.
 export function hostedBarParts(
   stats: Stats,
-  settings: Settings,
+  _settings: Settings,
   options: { numbers: boolean; segmented: boolean; name?: string },
   origin: string,
 ): BarPart[] {
@@ -46,8 +46,6 @@ export function hostedBarParts(
     const p = Math.min(1, Math.max(0, stats.hp / stats.maxHp));
     const stage = 0;
     add("frame", `frame-${stage}-${Math.round(177 * p)}`, 0, top, 928, 184);
-    if (options.segmented)
-      add("segments", `segments-${settings.segments}`, 0, top, 928, 184);
     if (options.numbers)
       add(
         "hp",

@@ -96,7 +96,7 @@ test("labels remain local; segmented health omits exact HP, AC and temporary HP"
     );
     assert.deepEqual(
       parts.map((p) => p.key),
-      ["frame", "segments"],
+      ["frame"],
     );
     assert.ok(parts.every((p) => p.text === undefined));
   }

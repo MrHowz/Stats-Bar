@@ -41,15 +41,6 @@ export function barSvg(
       rect(41, 18, fill, 12, "#d8232f") +
       rect(41, 31, fill, 2, "#841d28");
   }
-  if (options.segmented)
-    for (let i = 1; i < settings.segments; i++)
-      shape += rect(
-        41 + Math.round((177 * i) / settings.segments),
-        16,
-        2,
-        15,
-        "#0b1012",
-      );
   shape +=
     '<path fill="#070b0e" d="M13 15h7v3h4v-3h7v4h3v9h-4v4h-4v4h-5v-4h-4v-4h-5v-9h1z"/><path fill="' +
     "#e42a39" +
