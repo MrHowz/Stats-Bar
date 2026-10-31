@@ -2,7 +2,7 @@ import { glyphFile } from "./pixel-font.ts";
 import type { Settings, Stats } from "./model.ts";
 
 export const ART_WIDTH = 928;
-export const ART_PATH = "/bars-v5/";
+export const ART_PATH = "/bars-v6/";
 export interface BarPart {
   key: string;
   url: string;
@@ -65,10 +65,10 @@ export function hostedBarParts(
     add(
       "temp",
       "temp",
-      stats.ac > 0 ? 580 : 752,
+      stats.ac > 0 ? 516 : 720,
       badgeY,
-      160,
-      160,
+      192,
+      192,
       String(stats.tempHp),
       Math.min(40, 128 / String(stats.tempHp).length),
       "#f3fff0",
@@ -77,10 +77,10 @@ export function hostedBarParts(
     add(
       "ac",
       "ac",
-      752,
+      720,
       badgeY,
-      160,
-      160,
+      192,
+      192,
       String(stats.ac),
       Math.min(40, 128 / String(stats.ac).length),
       "#f1f6ff",
@@ -124,6 +124,6 @@ export function hostedBarParts(
 export function barHeight(stats: Stats, hasName: boolean): number {
   return (
     (hasName ? 56 : 0) +
-    (stats.tempHp > 0 || stats.ac > 0 ? (stats.maxHp > 0 ? 332 : 160) : 184)
+    (stats.tempHp > 0 || stats.ac > 0 ? (stats.maxHp > 0 ? 364 : 192) : 184)
   );
 }

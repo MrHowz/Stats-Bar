@@ -61,15 +61,15 @@ export function barSvg(
   let badges = "";
   const badgeY = s.maxHp > 0 ? 43 : 0;
   if (s.tempHp > 0) {
-    const x = s.ac > 0 ? 145 : 188;
-    badges += `<g transform="translate(${x} ${badgeY}) scale(${10/7})">${badgeShape("temp")}${pixelText(String(s.tempHp), 14, 14, 23.1, 14)}</g>`;
+    const x = s.ac > 0 ? 129 : 180;
+    badges += `<g transform="translate(${x} ${badgeY}) scale(${12/7})">${badgeShape("temp")}${pixelText(String(s.tempHp), 14, 14, 23.9166666667, 11.6666666667)}</g>`;
   }
   if (s.ac > 0)
-    badges += `<g transform="translate(188 ${badgeY}) scale(${10/7})">${badgeShape("ac")}${pixelText(String(s.ac), 14, 14, 23.1, 14)}</g>`;
+    badges += `<g transform="translate(180 ${badgeY}) scale(${12/7})">${badgeShape("ac")}${pixelText(String(s.ac), 14, 14, 23.9166666667, 11.6666666667)}</g>`;
   const name = options.name
     ? `<text x="116" y="10" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#fff5df" stroke="#10171a" stroke-width="3" paint-order="stroke">${esc(options.name.slice(0, 32))}</text>`
     : "";
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="928" height="${((s.tempHp || s.ac ? badgeY + 40 : 46) + top) * 4}" viewBox="0 0 232 ${(s.tempHp || s.ac ? badgeY + 40 : 46) + top}" shape-rendering="crispEdges">${name}<g transform="translate(0 ${top})">${s.maxHp > 0 ? shape : ""}${badges}</g></svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="928" height="${((s.tempHp || s.ac ? badgeY + 48 : 46) + top) * 4}" viewBox="0 0 232 ${(s.tempHp || s.ac ? badgeY + 48 : 46) + top}" shape-rendering="crispEdges">${name}<g transform="translate(0 ${top})">${s.maxHp > 0 ? shape : ""}${badges}</g></svg>`;
 }
 export const svgUrl = (svg: string) =>
   `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
