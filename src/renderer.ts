@@ -27,8 +27,11 @@ export function createRenderer(
   let active = false,
     epoch = 0,
     running = false,
-    queued = false;
+    queued = false,
+    revision = 0;
   let timer: ReturnType<typeof setTimeout> | undefined;
+  let settleTimer: ReturnType<typeof setTimeout> | undefined;
+  let repairTimer: ReturnType<typeof setTimeout> | undefined;
   const signatures = new Map<string, string>();
   const boundsCache = new Map<
     string,
@@ -37,12 +40,34 @@ export function createRenderer(
       bounds: Awaited<ReturnType<typeof OBR.scene.items.getItemBounds>>;
     }
   >();
-  function schedule() {
+  function reconcile() {
+    if (!active) return;
+    revision++;
+    signatures.clear();
+    boundsCache.clear();
     queued = true;
-    clearTimeout(timer);
-    timer = setTimeout(() => void flush(), 80);
+    void flush();
   }
-  async function render(generation: number) {
+  function schedule() {
+    if (!active) return;
+    revision++;
+    queued = true;
+    // Throttle rather than restarting a debounce timer on every remote snapshot.
+    if (!timer) timer = setTimeout(() => { timer = undefined; void flush(); }, 40);
+    clearTimeout(settleTimer);
+    clearTimeout(repairTimer);
+    // Re-read settled scene geometry after the interaction and network interpolation.
+    settleTimer = setTimeout(reconcile, 350);
+    repairTimer = setTimeout(reconcile, 1000);
+  }
+  async function render(generation: number, snapshot: number) {
+    const stale = () => {
+      if (!active || epoch !== generation || revision !== snapshot) {
+        signatures.clear();
+        return true;
+      }
+      return false;
+    };
     if (!active) return;
     const [items, local, role, id, room, scene, dpi] = await Promise.all([
       OBR.scene.items.getItems(),
@@ -53,7 +78,7 @@ export function createRenderer(
       OBR.scene.getMetadata(),
       OBR.scene.grid.getDpi(),
     ]);
-    if (!active || epoch !== generation) return;
+    if (stale()) return;
     const settings = readSettings(room[SETTINGS_KEY], scene[SETTINGS_KEY]);
     const overlays = local.filter((i) => i.metadata[OVERLAY_KEY]) as OBRImage[];
     const byToken = new Map<string, OBRImage[]>();
@@ -113,7 +138,9 @@ export function createRenderer(
         stats,
         settings,
         options,
-        position,
+        token.rotation,
+        token.scale,
+        bounds.height,
         width,
         dpi,
         token.visible,
@@ -127,7 +154,7 @@ export function createRenderer(
         continue;
       }
       const tiles = await makeParts(stats, settings, options);
-      if (!active || epoch !== generation) return;
+      if (stale()) return;
       for (const tile of tiles) {
         if (tile.url.length > 2048)
           throw new Error("Image URL exceeds Owlbear's 2048-character limit");
@@ -196,13 +223,13 @@ export function createRenderer(
         }
       }
     }
-    if (!active || epoch !== generation) return;
+    if (stale()) return;
     const remove = overlays.filter((i) => !keep.has(i.id)).map((i) => i.id);
     if (remove.length) {
       await OBR.scene.local.deleteItems(remove);
       remove.forEach((id) => signatures.delete(id));
     }
-    if (!active || epoch !== generation) return;
+    if (stale()) return;
     if (updates.length) {
       const map = new Map(updates.map((i) => [i.id, i]));
       await OBR.scene.local.updateItems(
@@ -212,7 +239,7 @@ export function createRenderer(
         },
       );
     }
-    if (!active || epoch !== generation) return;
+    if (stale()) return;
     if (add.length) await OBR.scene.local.addItems(add);
     for (const key of boundsCache.keys())
       if (!items.some((i) => i.id === key)) boundsCache.delete(key);
@@ -223,7 +250,7 @@ export function createRenderer(
     try {
       while (queued && active) {
         queued = false;
-        await render(epoch);
+        await render(epoch, revision);
       }
     } catch (e) {
       signatures.clear();
@@ -248,13 +275,19 @@ export function createRenderer(
     setReady(value: boolean) {
       active = value;
       epoch++;
+      revision++;
+      clearTimeout(timer); timer = undefined;
+      clearTimeout(settleTimer);
+      clearTimeout(repairTimer);
       signatures.clear();
       boundsCache.clear();
       if (value) schedule();
     },
     schedule,
-    async flushNow() {
-      clearTimeout(timer);
+    reconcile,
+    async flushNow(repair = false) {
+      clearTimeout(timer); timer = undefined;
+      if (repair) { signatures.clear(); boundsCache.clear(); }
       queued = true;
       await flush();
     },

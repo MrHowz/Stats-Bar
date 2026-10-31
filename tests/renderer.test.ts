@@ -158,7 +158,7 @@ test("renderer attaches one local bar, reuses it for HP and movement, and cleans
   assert.deepEqual(f.counts(), { adds: 1, updates: 1 });
   assert.equal(f.getLocal()[0].id, bar.id);
   f.getItems()[0].position.x += 100;
-  await f.renderer.flushNow();
+  await f.renderer.flushNow(true);
   assert.equal(f.getLocal()[0].position.x, position.x + 100);
   f.deleteToken();
   await f.renderer.flushNow();
@@ -284,5 +284,37 @@ test("changing HP reuses the frame and fill while changing only fill horizontal 
  assert.equal(find("fill").id,before.id);
  assert.equal(find("fill").scale.x,before.scale.x/2);
  assert.equal(find("fill").scale.y,before.scale.y);
+ renderer.setReady(false);
+});
+
+test("remote movement lets native attachments translate, then repairs settled drift",async()=>{
+ const f=fixture();f.renderer.setReady(true);await f.renderer.flushNow();
+ const original=structuredClone(f.getLocal()[0]);
+ f.getItems()[0].position.x+=100;
+ // Native attachment playback moves the local child during a remote interaction.
+ f.getLocal()[0].position.x+=100;
+ f.renderer.schedule();await f.renderer.flushNow();
+ assert.equal(f.counts().updates,0);
+ assert.equal(f.getLocal()[0].position.x,original.position.x+100);
+ // A final reconciliation repairs an incorrect local offset without duplicating items.
+ f.getLocal()[0].position.x+=45;
+ await f.renderer.flushNow(true);
+ assert.equal(f.getLocal()[0].position.x,original.position.x+100);
+ assert.equal(f.getLocal()[0].id,original.id);
+ f.renderer.setReady(false);
+});
+test("a remote move while artwork is pending discards the old snapshot",async()=>{
+ const f=fixture();let release!:()=>void,started!:()=>void;let first=true;
+ const entered=new Promise<void>(r=>started=r),gate=new Promise<void>(r=>release=r);
+ const renderer=createRenderer(f.api,f.builder,async()=>{
+  if(first){first=false;started();await gate;}
+  return [{key:"frame",url:"png",x:0,y:0,width:464,height:120}];
+ });
+ renderer.setReady(true);const pending=renderer.flushNow();await entered;
+ f.getItems()[0].position.x+=200;renderer.schedule();release();await pending;
+ assert.equal(f.getLocal().length,1);
+ const actual=f.getLocal()[0];
+ assert.ok(actual.position.x>200);
+ assert.equal(f.counts().adds,1);
  renderer.setReady(false);
 });
