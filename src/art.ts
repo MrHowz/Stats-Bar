@@ -26,19 +26,6 @@ export function barSvg(
   } = {},
 ): string {
   const p = s.maxHp > 0 ? Math.min(1, Math.max(0, s.hp / s.maxHp)) : 0;
-  const stage =
-    options.decayStage ??
-    (settings.decay
-      ? p === 0
-        ? 4
-        : p <= 0.25
-          ? 3
-          : p <= 0.5
-            ? 2
-            : p < 1
-              ? 1
-              : 0
-      : 0);
   const top = options.name ? 14 : 0;
   // Slim stepped stone frame; the red channel occupies most of its height.
   let shape = '<path fill="#080c0e" d="M10 7h23v3h188v4h6v20h-6v4H33v3H10v-4H5V11h5z"/>';
@@ -65,28 +52,9 @@ export function barSvg(
       );
   shape +=
     '<path fill="#070b0e" d="M13 15h7v3h4v-3h7v4h3v9h-4v4h-4v4h-5v-4h-4v-4h-5v-9h1z"/><path fill="' +
-    (p === 0 ? "#682633" : "#e42a39") +
+    "#e42a39" +
     '" d="M15 18h4v4h7v-4h4v9h-4v4h-4v2h-2v-5h-5z"/>';
-  if (p > 0) shape += rect(15, 18, 4, 4, "#ff6b68");
-  if (stage > 0)
-    shape += '<path fill="#080c0e" d="M20 17h3v5h-3v4h4v5h-3v-4h-4v-5h3z"/>';
-  // Erosion is drawn in pixel steps; it never obscures the remaining filled HP.
-  const breaks = [
-    { x: 213, t: 1 },
-    { x: 169, t: 2 },
-    { x: 118, t: 2 },
-    { x: 78, t: 3 },
-    { x: 47, t: 4 },
-    { x: 192, t: 3 },
-  ];
-  for (const b of breaks)
-    if (stage >= b.t) {
-      shape += `<path fill="#080c0e" d="M${b.x} 5h5v7h5v6h-4v13h4v5h-5v7h-6v-8h-4v-7h4V16h-4v-5h5z"/>`;
-      if (stage >= 3)
-        shape +=
-          rect(b.x + 6, 33, 3, 3, "#688a3b") +
-          rect(b.x + 3, 9, 3, 2, "#88a747");
-    }
+  shape += rect(15, 18, 4, 4, "#ff6b68");
   const numbers = options.numbers ?? settings.showNumbers;
   if (numbers && s.maxHp > 0)
     shape += pixelText(`${s.hp} / ${s.maxHp}`, 130, 23, 174, 11);

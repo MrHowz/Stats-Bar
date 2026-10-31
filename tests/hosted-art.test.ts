@@ -111,3 +111,10 @@ test("labels remain local; segmented health omits exact HP, AC and temporary HP"
     ["temp", "ac"],
   );
 });
+
+test("frame always remains intact even with legacy decay settings", () => {
+ for (const hp of [0,1,25,50,75,100]) {
+  const parts = hostedBarParts({...DEFAULT_STATS,hp,maxHp:100},{...DEFAULT_SETTINGS,decay:true},{numbers:true,segmented:false},"https://example.com");
+  assert.match(parts.find(p => p.key === "frame")!.url,/frame-0-/);
+ }
+});

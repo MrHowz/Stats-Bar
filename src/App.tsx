@@ -210,7 +210,6 @@ function SettingsPanel() {
       </label>
       {(
         [
-          ["decay", "กรอบแตกตาม HP"],
           ["showNumbers", "แสดงตัวเลข HP"],
           ["showNames", "แสดงชื่อเหนือแถบ"],
         ] as const
@@ -598,7 +597,7 @@ export default function App() {
               ? "โหมดทดลอง"
               : "บันทึกในโทเคน"}
         </span>
-        <span>1.2.2</span>
+        <span>1.2.3</span>
       </footer>
       {state.demo &&
         !context &&

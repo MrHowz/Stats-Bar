@@ -44,7 +44,7 @@ export const DEFAULT_SETTINGS: Settings = {
   offset: -20,
   showNumbers: true,
   showNames: false,
-  decay: true,
+  decay: false,
   segments: 4,
 };
 const record = (v: unknown): Record<string, unknown> =>
@@ -82,7 +82,7 @@ export function readSettings(room: unknown, scene?: unknown): Settings {
         : DEFAULT_SETTINGS.offset,
     showNumbers: typeof r.showNumbers === "boolean" ? r.showNumbers : true,
     showNames: typeof r.showNames === "boolean" ? r.showNames : false,
-    decay: typeof r.decay === "boolean" ? r.decay : true,
+    decay: false,
     segments: [4, 5, 10].includes(Number(r.segments)) ? Number(r.segments) : 4,
   };
 }

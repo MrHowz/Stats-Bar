@@ -44,17 +44,7 @@ export function hostedBarParts(
   };
   if (stats.maxHp > 0) {
     const p = Math.min(1, Math.max(0, stats.hp / stats.maxHp));
-    const stage = !settings.decay
-      ? 0
-      : p === 0
-        ? 4
-        : p <= 0.25
-          ? 3
-          : p <= 0.5
-            ? 2
-            : p < 1
-              ? 1
-              : 0;
+    const stage = 0;
     add("frame", `frame-${stage}-${Math.round(177 * p)}`, 0, top, 928, 184);
     if (options.segmented)
       add("segments", `segments-${settings.segments}`, 0, top, 928, 184);
