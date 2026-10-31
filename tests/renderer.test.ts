@@ -318,3 +318,20 @@ test("a remote move while artwork is pending discards the old snapshot",async()=
  assert.equal(f.counts().adds,1);
  renderer.setReady(false);
 });
+
+test("quiet audits never rewrite aligned bars and only repair a confirmed stable drift",async()=>{
+ const f=fixture();f.renderer.setReady(true);await f.renderer.flushNow();
+ const original=structuredClone(f.getLocal()[0]);
+ await f.renderer.flushNow("audit");await f.renderer.flushNow("audit");
+ assert.equal(f.counts().updates,0);
+ f.getLocal()[0].position.x+=40;
+ await f.renderer.flushNow("audit");assert.equal(f.counts().updates,0);
+ // A changing interpolation offset must not be corrected mid-playback.
+ f.getLocal()[0].position.x+=10;
+ await f.renderer.flushNow("audit");assert.equal(f.counts().updates,0);
+ await f.renderer.flushNow("audit");assert.equal(f.counts().updates,1);
+ assert.equal(f.getLocal()[0].position.x,original.position.x);
+ assert.deepEqual(f.getItems()[0].position,{x:100,y:100});
+ await f.renderer.flushNow("audit");assert.equal(f.counts().updates,1);
+ f.renderer.setReady(false);
+});

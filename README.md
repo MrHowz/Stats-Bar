@@ -155,3 +155,7 @@ Health rendering now uses one fixed frame PNG and one fixed red fill PNG. HP cha
 
 ## 1.3.1
 Remote-movement synchronization: let native attachments handle pure translation, discard rendering snapshots invalidated by newer scene events, throttle updates without starving continuous drags, and reconcile settled geometry at350ms and1000ms. Scene shutdown cancels reconciliation timers. Regression coverage includes remote translation, repairing local drift and movement while artwork is pending. Two live clients still require user verification after deployment.
+
+
+## 1.3.2
+Settled movement checks no longer unconditionally rewrite local bars. Aligned bars are left untouched; positional corrections require the same drift across two quiet checks and a stable token transform. Obsolete render snapshots no longer clear all committed signatures. Signatures commit after local writes, preventing unnecessary redraws during network interpolation. Regression tests check aligned no-op audits, changing interpolation offsets, confirmed drift repair and untouched shared token positions. Live two-client network playback remains to be verified after deployment.

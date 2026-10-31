@@ -28,10 +28,12 @@ export function createRenderer(
     epoch = 0,
     running = false,
     queued = false,
-    revision = 0;
+    revision = 0,
+    auditQueued = false;
   let timer: ReturnType<typeof setTimeout> | undefined;
   let settleTimer: ReturnType<typeof setTimeout> | undefined;
   let repairTimer: ReturnType<typeof setTimeout> | undefined;
+  const drift = new Map<string,{key:string;dx:number;dy:number}>();
   const signatures = new Map<string, string>();
   const boundsCache = new Map<
     string,
@@ -43,8 +45,8 @@ export function createRenderer(
   function reconcile() {
     if (!active) return;
     revision++;
-    signatures.clear();
     boundsCache.clear();
+    auditQueued = true;
     queued = true;
     void flush();
   }
@@ -60,10 +62,9 @@ export function createRenderer(
     settleTimer = setTimeout(reconcile, 350);
     repairTimer = setTimeout(reconcile, 1000);
   }
-  async function render(generation: number, snapshot: number) {
+  async function render(generation: number, snapshot: number, audit: boolean) {
     const stale = () => {
       if (!active || epoch !== generation || revision !== snapshot) {
-        signatures.clear();
         return true;
       }
       return false;
@@ -79,6 +80,7 @@ export function createRenderer(
       OBR.scene.grid.getDpi(),
     ]);
     if (stale()) return;
+    const pendingSignatures = new Map<string,string>();
     const settings = readSettings(room[SETTINGS_KEY], scene[SETTINGS_KEY]);
     const overlays = local.filter((i) => i.metadata[OVERLAY_KEY]) as OBRImage[];
     const byToken = new Map<string, OBRImage[]>();
@@ -146,10 +148,8 @@ export function createRenderer(
         token.visible,
       ]);
       const existingParts = byToken.get(token.id) ?? [];
-      if (
-        existingParts.length &&
-        existingParts.every((part) => signatures.get(part.id) === signature)
-      ) {
+      const unchanged = existingParts.length > 0 && existingParts.every((part) => signatures.get(part.id) === signature);
+      if (unchanged && !audit) {
         existingParts.forEach((part) => keep.add(part.id));
         continue;
       }
@@ -167,6 +167,25 @@ export function createRenderer(
           );
         });
         if (existing) keep.add(existing.id);
+        const target = {
+          x: position.x + (tile.x * width) / ART_WIDTH,
+          y: position.y + (tile.y * width) / ART_WIDTH,
+        };
+        if (existing && unchanged) {
+          const dx = target.x - existing.position.x, dy = target.y - existing.position.y;
+          if (Math.abs(dx) <= 1 && Math.abs(dy) <= 1) {
+            drift.delete(existing.id);
+            continue;
+          }
+          const previous = drift.get(existing.id);
+          // Require the same mismatch at two quiet checkpoints, rather than
+          // snapping to an interpolated network position after every drag.
+          if (!previous || previous.key !== transformKey || Math.abs(previous.dx-dx)>1 || Math.abs(previous.dy-dy)>1) {
+            drift.set(existing.id,{key:transformKey,dx,dy});
+            continue;
+          }
+          drift.delete(existing.id);
+        }
         const item = buildImage(
           {
             url: tile.url,
@@ -178,10 +197,7 @@ export function createRenderer(
         )
           .name("Pixel Statbar")
           .layer("ATTACHMENT")
-          .position({
-            x: position.x + (tile.x * width) / ART_WIDTH,
-            y: position.y + (tile.y * width) / ART_WIDTH,
-          })
+          .position(target)
           .scale({
             x: (width / ART_WIDTH) * (tile.glyphScale ?? 1) * (tile.scaleX ?? 1),
             y: (width / ART_WIDTH) * (tile.glyphScale ?? 1),
@@ -216,10 +232,10 @@ export function createRenderer(
         if (existing) {
           const replacement = { ...item, id: existing.id };
           updates.push(replacement);
-          signatures.set(existing.id, signature);
+          pendingSignatures.set(existing.id, signature);
         } else {
           add.push(item);
-          signatures.set(item.id, signature);
+          pendingSignatures.set(item.id, signature);
         }
       }
     }
@@ -227,7 +243,7 @@ export function createRenderer(
     const remove = overlays.filter((i) => !keep.has(i.id)).map((i) => i.id);
     if (remove.length) {
       await OBR.scene.local.deleteItems(remove);
-      remove.forEach((id) => signatures.delete(id));
+      remove.forEach((id) => { signatures.delete(id); drift.delete(id); });
     }
     if (stale()) return;
     if (updates.length) {
@@ -241,6 +257,7 @@ export function createRenderer(
     }
     if (stale()) return;
     if (add.length) await OBR.scene.local.addItems(add);
+    for (const [id,signature] of pendingSignatures) signatures.set(id,signature);
     for (const key of boundsCache.keys())
       if (!items.some((i) => i.id === key)) boundsCache.delete(key);
   }
@@ -250,7 +267,8 @@ export function createRenderer(
     try {
       while (queued && active) {
         queued = false;
-        await render(epoch, revision);
+        const audit = auditQueued; auditQueued = false;
+        await render(epoch, revision, audit);
       }
     } catch (e) {
       signatures.clear();
@@ -280,14 +298,16 @@ export function createRenderer(
       clearTimeout(settleTimer);
       clearTimeout(repairTimer);
       signatures.clear();
+      drift.clear();
       boundsCache.clear();
       if (value) schedule();
     },
     schedule,
     reconcile,
-    async flushNow(repair = false) {
+    async flushNow(repair: boolean | "audit" = false) {
       clearTimeout(timer); timer = undefined;
-      if (repair) { signatures.clear(); boundsCache.clear(); }
+      if (repair === true) { signatures.clear(); boundsCache.clear(); }
+      if (repair === "audit") { auditQueued = true; boundsCache.clear(); }
       queued = true;
       await flush();
     },
