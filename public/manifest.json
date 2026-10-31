@@ -1,13 +1,13 @@
 {
   "name": "Stat Bar",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "manifest_version": 1,
   "description": "Customizable character health bars with HP, temporary HP, AC and per-token styles.",
-  "icon": "/stat-bar-icon.svg",
+  "icon": "/stat-bar-icon-v2.svg",
   "background_url": "/background.html",
   "action": {
     "title": "Stat Bar",
-    "icon": "/stat-bar-icon.svg",
+    "icon": "/stat-bar-icon-v2.svg",
     "popover": "/index.html",
     "width": 440,
     "height": 690

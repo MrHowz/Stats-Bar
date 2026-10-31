@@ -312,7 +312,7 @@ export default function App() {
     <main className={`stat-app ${context ? "context-app" : "table-app"}`}>
       {!context && (
         <header className="app-header">
-          <img src="./stat-bar-icon.svg" alt="" />
+          <img src="./stat-bar-icon-v2.svg" alt="" />
           <strong>Stat Bar</strong>
           <span>{state.viewer.role}</span>
           <Button
@@ -474,7 +474,7 @@ export default function App() {
               ? "โหมดทดลอง"
               : "บันทึกในโทเคน"}
         </span>
-        <span>1.4.1</span>
+        <span>1.4.2</span>
       </footer>
       {state.demo &&
         !context &&

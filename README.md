@@ -1,6 +1,8 @@
-# Stat Bar 1.4.1
+# Stat Bar 1.4.2
 
 Extension สำหรับ Owlbear Rodeo แสดง HP / Max HP / Temp HP / AC เฉพาะโทเคนชนิด Character
+
+ไอคอน Extension เป็นรูปหัวใจเหนือหลอด HP แบบพื้นหลังโปร่งใส อ่านได้ในขนาดเล็กและเมื่อแสดงเป็นสีเดียว ใช้ไฟล์ stat-bar-icon-v2.svg สำหรับแถบ Extension เมนูโทเคน หัวแอป และ favicon
 
 ## รูปแบบและหน้าจอควบคุม
 
