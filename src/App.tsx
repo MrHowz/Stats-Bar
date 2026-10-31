@@ -198,10 +198,10 @@ function SettingsPanel() {
           min="-100"
           max="100"
           key={s.offset}
-          defaultValue={s.offset}
+          defaultValue={s.offset + 20}
           onBlur={(e) => {
             if (Number.isFinite(e.target.valueAsNumber))
-              change({ offset: e.target.valueAsNumber });
+              change({ offset: e.target.valueAsNumber - 20 });
           }}
           onKeyDown={(e) => {
             if (e.key === "Enter") e.currentTarget.blur();
@@ -249,7 +249,7 @@ function SettingsPanel() {
         className="wide"
         onClick={() => change({ offset: DEFAULT_SETTINGS.offset })}
       >
-        ใช้ระยะเริ่มต้น ({DEFAULT_SETTINGS.offset})
+        ใช้ระยะเริ่มต้น (0)
       </Button>
       <div className="note">
         Max HP มากกว่า 0 จะแสดงแถบอัตโนมัติ · Temp HP และ AC จะแสดงเมื่อมากกว่า
@@ -598,7 +598,7 @@ export default function App() {
               ? "โหมดทดลอง"
               : "บันทึกในโทเคน"}
         </span>
-        <span>1.2.1</span>
+        <span>1.2.2</span>
       </footer>
       {state.demo &&
         !context &&

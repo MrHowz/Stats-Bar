@@ -1,3 +1,4 @@
+import { hostedBarParts } from "../src/hosted-art.ts";
 import { pixelText } from "../src/pixel-font.ts";
 import { barSvg } from "../src/art.ts";
 import { test } from "node:test";
@@ -252,4 +253,20 @@ test("tiled bars reuse matching pieces, remove obsolete pieces and migrate legac
   await renderer.flushNow();
   assert.equal(f.getLocal().length, 0);
   renderer.setReady(false);
+});
+
+test("badge backgrounds stay behind every numeric glyph after repeated updates", async () => {
+ const f = fixture();
+ const renderer = createRenderer(f.api, f.builder, (stats, settings, options) => hostedBarParts({...stats, tempHp:20, ac:50},settings,options,"https://example.com"));
+ renderer.setReady(true);
+ await renderer.flushNow();
+ await renderer.flushNow();
+ const items = f.getLocal();
+ for (const kind of ["temp", "ac"]) {
+  const background = items.find(i => (i.metadata[OVERLAY_KEY] as {part:string}).part === kind)!;
+  const digits = items.filter(i => (i.metadata[OVERLAY_KEY] as {part:string}).part.startsWith(kind+"-digit-"));
+  assert.equal(digits.length,2);
+  assert.ok(digits.every(i => i.zIndex > background.zIndex));
+ }
+ renderer.setReady(false);
 });

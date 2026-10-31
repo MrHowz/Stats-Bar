@@ -4,7 +4,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { barSvg, badgeShape } from "../src/art.ts";
 import { DEFAULT_SETTINGS, DEFAULT_STATS } from "../src/model.ts";
 
-const folder = new URL("../public/bars-v3/", import.meta.url);
+const folder = new URL("../public/bars-v4/", import.meta.url);
 await mkdir(folder, { recursive: true });
 const jobs = [];
 function add(name, svg) {

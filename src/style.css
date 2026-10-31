@@ -468,3 +468,8 @@ html:not(.context) #root {
 
 @font-face { font-family: "Pixel Stat Digits"; src: url("/fonts/pixel-stat-digits.ttf") format("truetype"); font-weight: 100 900; font-display: swap; unicode-range: U+0030-0039; }
 .stat-input input, .batch-controls input { font-family: "Pixel Stat Digits", Roboto, "Noto Sans Thai", sans-serif; font-weight: 400; }
+
+/* Give editable stats most of the row; full names remain available on hover. */
+.stats-row { grid-template-columns: minmax(45px, .8fr) 80px minmax(42px,1fr) 4px minmax(42px,1fr) minmax(42px,1fr) minmax(42px,1fr); }
+@media (max-width: 460px) { .stats-row { grid-template-columns: 96px 84px minmax(38px,1fr) 4px minmax(38px,1fr) minmax(38px,1fr) minmax(38px,1fr); gap:3px; } }
+@media (max-width: 370px) { .stats-row { grid-template-columns: 30px 72px minmax(34px,1fr) 4px minmax(34px,1fr) minmax(34px,1fr) minmax(34px,1fr);gap:2px; } }

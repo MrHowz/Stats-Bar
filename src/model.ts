@@ -41,7 +41,7 @@ export const DEFAULT_STATS: Stats = {
 export const DEFAULT_SETTINGS: Settings = {
   position: "above",
   width: 1.5,
-  offset: -12,
+  offset: -20,
   showNumbers: true,
   showNames: false,
   decay: true,

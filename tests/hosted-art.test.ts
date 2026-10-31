@@ -17,7 +17,7 @@ test("all health levels use real decodable hosted PNGs with matching dimensions"
       for (const part of parts) {
         assert.match(
           part.url,
-          /^https:\/\/stats-bar\.pages\.dev\/bars-v3\/[a-z0-9-]+\.png$/,
+          /^https:\/\/stats-bar\.pages\.dev\/bars-v4\/[a-z0-9-]+\.png$/,
         );
         assert.ok(part.url.length < 2048);
         const bytes = await readFile(

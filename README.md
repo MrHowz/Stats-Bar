@@ -135,3 +135,7 @@ Pixel Statbar เป็น Extension แยกอิสระ ไม่ใช่
 - No custom font installation required on player devices. Names retain a readable normal font.
 - Existing saved settings preserved; default offset stays -12.
 - References: https://github.com/owlbear-rodeo/initiative-tracker/blob/main/src/PluginThemeProvider.tsx ; https://github.com/SeamusFinlayson/owl-trackers/blob/main/src/getTheme.ts ; https://github.com/owlbear-rodeo/dice/blob/main/package.json
+
+
+## 1.2.2
+Slimmer stone frame and larger red HP channel. Numeric glyphs render above badge backgrounds, preventing partially hidden Temp/AC values. Narrower name column leaves more width for editable stats. Distance shown as 0 now maps to the previous -20 position; saved positions remain unchanged. Use the default-distance button to apply the new base to existing rooms.

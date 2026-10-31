@@ -40,22 +40,19 @@ export function barSvg(
               : 0
       : 0);
   const top = options.name ? 14 : 0;
-  let shape =
-    '<path fill="#080c0e" d="M10 4h5V2h7v3h9v3h9V6h12v3h10V5h10v3h12V4h10v4h13V3h10v5h13V5h10v3h13V2h10v6h12V4h10v4h13V5h12v4h12v5h6v20h-5v5h-9v4h-12v-3h-13v4h-12v-4h-13v3h-12v-3h-13v4h-12v-4h-13v3h-12v-4h-13v4h-12v-3H75v4H63v-4H51v-2H39v4h-9v4H14v-4H8v-7H3V16h4V8h3z"/>';
-  shape +=
-    '<path fill="#5f7c89" d="M11 9h6V6h5v3h10v5h9v-4h11v3h11V9h8v3h13V8h8v4h15V7h8v5h15V9h8v3h15V6h8v6h14V8h8v4h15V9h10v4h13v5h6v13h-5v4h-10v4h-9v-3h-15v4h-9v-4h-15v3h-9v-3h-15v4h-9v-4h-15v3h-9v-4H89v4h-10v-3H64v4h-10v-4H40v-3h-8v7H17v-4h-7v-7H7V18h4z"/>';
-  shape +=
-    '<path fill="#95aab1" d="M11 10h6V7h5v4h10v4h-3v-2H15v5h-4zM43 10h8v4h-8zM64 9h7v4h-7zM85 8h7v4h-7zM108 7h7v5h-7zM131 9h7v4h-7zM154 6h7v5h-7zM176 8h7v5h-7zM199 9h9v5h-9zM214 14h7v5h5v7h-4v-6h-8z"/>';
-  shape +=
-    '<path fill="#405862" d="M13 32h17v6H17v-3h-4zM41 31h13v4H41zM64 33h15v4H64zM90 32h12v4H90zM116 33h15v4h-15zM142 32h13v4h-13zM168 33h15v4h-15zM194 32h15v4h-15zM214 27h8v7h-8z"/>';
-  shape += rect(39, 15, 181, 16, "#06080a");
+  // Slim stepped stone frame; the red channel occupies most of its height.
+  let shape = '<path fill="#080c0e" d="M10 7h23v3h188v4h6v20h-6v4H33v3H10v-4H5V11h5z"/>';
+  shape += '<path fill="#5f7c89" d="M11 10h20v3h188v4h5v14h-5v4H31v3H11v-4H8V14h3z"/>';
+  shape += '<path fill="#95aab1" d="M12 10h18v3h189v3H33v-1H12z"/>';
+  shape += '<path fill="#405862" d="M11 32h20v3h188v-3h5v3h-5v2H31v2H11z"/>';
+  shape += rect(39, 11, 181, 24, "#06080a");
   const fill = Math.round(177 * p);
   if (fill) {
     shape +=
-      rect(41, 17, fill, 12, "#ba1724") +
-      rect(41, 17, fill, 4, "#ec4546") +
-      rect(41, 21, fill, 5, "#d8232f") +
-      rect(41, 28, fill, 1, "#841d28");
+      rect(41, 13, fill, 20, "#ba1724") +
+      rect(41, 13, fill, 5, "#ec4546") +
+      rect(41, 18, fill, 12, "#d8232f") +
+      rect(41, 31, fill, 2, "#841d28");
   }
   if (options.segmented)
     for (let i = 1; i < settings.segments; i++)
