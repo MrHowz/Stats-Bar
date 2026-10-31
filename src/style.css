@@ -473,3 +473,19 @@ html:not(.context) #root {
 .stats-row { grid-template-columns: minmax(45px, .8fr) 80px minmax(42px,1fr) 4px minmax(42px,1fr) minmax(42px,1fr) minmax(42px,1fr); }
 @media (max-width: 460px) { .stats-row { grid-template-columns: 96px 84px minmax(38px,1fr) 4px minmax(38px,1fr) minmax(38px,1fr) minmax(38px,1fr); gap:3px; } }
 @media (max-width: 370px) { .stats-row { grid-template-columns: 30px 72px minmax(34px,1fr) 4px minmax(34px,1fr) minmax(34px,1fr) minmax(34px,1fr);gap:2px; } }
+
+/* Larger main-panel controls and a compact direct-edit token menu. */
+.table-app .stats-row:not(.table-head) { min-height: 62px; }
+.table-app .table-head { font-size: 13px; min-height: 40px; }
+.table-app .stat-input > .control-input { height: 42px; }
+.table-app .stat-input input { font-size: 18px; }
+.table-app .token-name > span:last-child { font-size: 13px; }
+.table-app .token-picture { width: 28px; height: 28px; }
+.table-app .visibility .MuiSelect-select { font-size: 13px; padding-top: 10px; padding-bottom: 10px; }
+.table-app .table-body { max-height: calc(100dvh - 170px); }
+.table-app .status-line { margin-top: auto; }
+.context-app .status-line { display: none; }
+.compact-fields { margin-top: 12px; }
+.context-app .stat-input > .control-input { height: 40px; }
+.context-app .stat-input input { font-size: 17px; }
+.context-app .stat-input > span { font-size: 11px; }

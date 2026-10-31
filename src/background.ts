@@ -11,7 +11,7 @@ OBR.onReady(() => {
       id: `${ID}/edit`,
       icons: ["CHARACTER", "MOUNT", "PROP"].map((layer) => ({
         icon: "/icon.svg",
-        label: "Pixel Statbar · แก้ไขค่าสถานะ",
+        label: "Pixel statbar",
         filter: {
           every: [
             { key: "type", value: "IMAGE" },
@@ -19,7 +19,7 @@ OBR.onReady(() => {
           ],
         },
       })),
-      embed: { url: "/index.html?context=1", height: 300 },
+      embed: { url: "/index.html?context=1", height: 180 },
     })
     .catch(console.error);
   OBR.scene.onReadyChange(renderer.setReady);

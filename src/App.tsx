@@ -4,7 +4,6 @@ import type { Item, Image as OBRImage } from "@owlbear-rodeo/sdk";
 import {
   DEFAULT_SETTINGS,
   access,
-  applyAmount,
   canEdit,
   displayStats,
   editStat,
@@ -349,7 +348,6 @@ function CompactEditor({ item }: { item: Item }) {
           }}
         />
       </div>
-      <Bar stats={stats} settings={state.settings} />
       <div className="compact-fields">
         <Fields item={item} />
       </div>
@@ -366,28 +364,14 @@ export default function App() {
   const [settings, setSettings] = useState(false);
   const [search, setSearch] = useState("");
   const [onlySelected, setOnlySelected] = useState(false);
-  const [amount, setAmount] = useState("5");
   const visible = state.items.filter((i) => access(i, state.viewer) !== "none");
   const selected = visible.filter((i) => state.selection.includes(i.id));
-  const targets = selected.filter((i) => canEdit(i, state.viewer));
   const listed = visible.filter(
     (i) =>
       (!onlySelected || state.selection.includes(i.id)) &&
       shortName(i).toLowerCase().includes(search.toLowerCase()),
   );
-  const operate = (kind: "damage" | "heal" | "temp") => {
-    const n = Number(amount);
-    if (!amount.trim() || !Number.isFinite(n) || n < 0 || n > 99999) {
-      report(new Error("ใส่จำนวนระหว่าง 0–99,999"));
-      return;
-    }
-    safely(
-      updateStats(
-        targets.map((i) => i.id),
-        (s) => applyAmount(s, kind, n),
-      ),
-    );
-  };
+
   return (
     <main className={`stat-app ${context ? "context-app" : "table-app"}`}>
       {!context && (
@@ -545,48 +529,7 @@ export default function App() {
               </div>
             </>
           )}
-          <section className="batch-bar">
-            <div className="batch-label">
-              {context ? "ปรับค่า" : "ใช้กับที่เลือก"} · {targets.length} โทเคน
-            </div>
-            <div className="batch-controls">
-              <Input
-                aria-label="จำนวน Damage หรือ Heal"
-                inputMode="numeric"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-              />
-              <Button
-                className="damage"
-                color="error"
-                disabled={!targets.length || state.busy}
-                onClick={() => operate("damage")}
-              >
-                − Damage
-              </Button>
-              <Button
-                className="heal"
-                color="success"
-                disabled={!targets.length || state.busy}
-                onClick={() => operate("heal")}
-              >
-                + Heal
-              </Button>
-              <Button
-                className="temp"
-                color="success"
-                disabled={!targets.length || state.busy}
-                onClick={() => operate("temp")}
-              >
-                ♥ Temp
-              </Button>
-            </div>
-            {!context && (
-              <p className="hint">
-                พิมพ์ +6 / -6 ได้ · Enter บันทึก · Damage หัก Temp ก่อน
-              </p>
-            )}
-          </section>
+
         </>
       )}
       <footer className="status-line">
@@ -597,7 +540,7 @@ export default function App() {
               ? "โหมดทดลอง"
               : "บันทึกในโทเคน"}
         </span>
-        <span>1.2.3</span>
+        <span>1.2.4</span>
       </footer>
       {state.demo &&
         !context &&

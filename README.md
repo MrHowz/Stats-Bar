@@ -139,3 +139,7 @@ Pixel Statbar เป็น Extension แยกอิสระ ไม่ใช่
 
 ## 1.2.2
 Slimmer stone frame and larger red HP channel. Numeric glyphs render above badge backgrounds, preventing partially hidden Temp/AC values. Narrower name column leaves more width for editable stats. Distance shown as 0 now maps to the previous -20 position; saved positions remain unchanged. Use the default-distance button to apply the new base to existing rooms.
+
+
+## 1.2.4
+Removed the amount box and Damage/Heal/Temp buttons from both panels. Edit each stat directly with a number or relative expression. Token context menu is named Pixel statbar and contains name, four stat fields and visibility; its bar preview is removed. Main-panel stat fields use 18px numerals and 62px rows for readability.
