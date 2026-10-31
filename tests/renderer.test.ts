@@ -270,3 +270,19 @@ test("badge backgrounds stay behind every numeric glyph after repeated updates",
  }
  renderer.setReady(false);
 });
+
+test("changing HP reuses the frame and fill while changing only fill horizontal scale",async()=>{
+ const f=fixture();
+ const renderer=createRenderer(f.api,f.builder,(stats,settings,options)=>hostedBarParts(stats,settings,options,"https://example.com"));
+ renderer.setReady(true);await renderer.flushNow();
+ const find=(part:string)=>f.getLocal().find(i=>(i.metadata[OVERLAY_KEY] as {part:string}).part===part)!;
+ const before=structuredClone(find("fill")),frame=structuredClone(find("frame"));
+ (f.getItems()[0].metadata[STAT_KEY] as {hp:number}).hp=9;
+ await renderer.flushNow();
+ assert.equal(find("frame").id,frame.id);
+ assert.equal((find("frame") as Image).image.url,(frame as Image).image.url);
+ assert.equal(find("fill").id,before.id);
+ assert.equal(find("fill").scale.x,before.scale.x/2);
+ assert.equal(find("fill").scale.y,before.scale.y);
+ renderer.setReady(false);
+});

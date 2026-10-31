@@ -17,7 +17,7 @@ test("all health levels use real decodable hosted PNGs with matching dimensions"
       for (const part of parts) {
         assert.match(
           part.url,
-          /^https:\/\/stats-bar\.pages\.dev\/bars-v6\/[a-z0-9-]+\.png$/,
+          /^https:\/\/stats-bar\.pages\.dev\/bars-v7\/[a-z0-9-]+\.png$/,
         );
         assert.ok(part.url.length < 2048);
         const bytes = await readFile(
@@ -96,7 +96,7 @@ test("labels remain local; segmented health omits exact HP, AC and temporary HP"
     );
     assert.deepEqual(
       parts.map((p) => p.key),
-      ["frame"],
+      ["frame", "fill"],
     );
     assert.ok(parts.every((p) => p.text === undefined));
   }
@@ -115,6 +115,17 @@ test("labels remain local; segmented health omits exact HP, AC and temporary HP"
 test("frame always remains intact even with legacy decay settings", () => {
  for (const hp of [0,1,25,50,75,100]) {
   const parts = hostedBarParts({...DEFAULT_STATS,hp,maxHp:100},{...DEFAULT_SETTINGS,decay:true},{numbers:true,segmented:false},"https://example.com");
-  assert.match(parts.find(p => p.key === "frame")!.url,/frame-0-/);
+  assert.match(parts.find(p => p.key === "frame")!.url,/frame\.png$/);
  }
+});
+
+test("health changes scale a fixed red strip without changing artwork URLs",()=>{
+ const make=(hp:number)=>hostedBarParts({...DEFAULT_STATS,hp,maxHp:100},DEFAULT_SETTINGS,{numbers:true,segmented:false},"https://example.com");
+ const full=make(100),half=make(50),empty=make(0);
+ assert.equal(full.find(p=>p.key==="frame")!.url,half.find(p=>p.key==="frame")!.url);
+ assert.equal(full.find(p=>p.key==="fill")!.url,half.find(p=>p.key==="fill")!.url);
+ assert.equal(full.find(p=>p.key==="fill")!.scaleX,1);
+ assert.equal(half.find(p=>p.key==="fill")!.scaleX,0.5);
+ assert.equal(half.find(p=>p.key==="fill")!.height,80);
+ assert.ok(!empty.some(p=>p.key==="fill"));
 });

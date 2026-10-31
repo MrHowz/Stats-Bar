@@ -147,3 +147,7 @@ Removed the amount box and Damage/Heal/Temp buttons from both panels. Edit each 
 
 ## 1.2.5
 Larger Temp HP heart and AC shield (160px artwork, previously112px). Increased HP numeral size and badge numeral size, with stronger dark outlines. Hosted artwork moved to bars-v5 to avoid stale cached glyphs. Long numbers still shrink to fit.
+
+
+## 1.3.0
+Health rendering now uses one fixed frame PNG and one fixed red fill PNG. HP changes update horizontal scale of the red fill without swapping health-state images. Numeric labels remain on top. At zero HP the red fill is removed. Artwork generation is reduced to19 static files. Existing settings and stat metadata remain compatible.

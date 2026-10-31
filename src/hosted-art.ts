@@ -2,7 +2,7 @@ import { glyphFile } from "./pixel-font.ts";
 import type { Settings, Stats } from "./model.ts";
 
 export const ART_WIDTH = 928;
-export const ART_PATH = "/bars-v6/";
+export const ART_PATH = "/bars-v7/";
 export interface BarPart {
   key: string;
   url: string;
@@ -12,6 +12,7 @@ export interface BarPart {
   height: number;
   text?: string;
   glyphScale?: number;
+  scaleX?: number;
   fontSize?: number;
   color?: string;
 }
@@ -44,8 +45,11 @@ export function hostedBarParts(
   };
   if (stats.maxHp > 0) {
     const p = Math.min(1, Math.max(0, stats.hp / stats.maxHp));
-    const stage = 0;
-    add("frame", `frame-${stage}-${Math.round(177 * p)}`, 0, top, 928, 184);
+    add("frame", "frame", 0, top, 928, 184);
+    if (p > 0) {
+      add("fill", "fill", 164, top + 52, 708, 80);
+      parts[parts.length - 1].scaleX = p;
+    }
     if (options.numbers)
       add(
         "hp",
