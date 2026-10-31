@@ -88,7 +88,7 @@ export function readSettings(room: unknown, scene?: unknown): Settings {
 }
 export const isToken = (i: Item) =>
   i.type === "IMAGE" &&
-  ["CHARACTER", "MOUNT", "PROP"].includes(i.layer) &&
+  i.layer === "CHARACTER" &&
   !i.metadata[OVERLAY_KEY];
 export const owns = (i: Item, v: Viewer) =>
   (readStats(i).controllerId || i.createdUserId) === v.id;

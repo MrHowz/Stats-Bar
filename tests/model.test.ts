@@ -4,6 +4,7 @@ import type { Item } from "@owlbear-rodeo/sdk";
 import {
   DEFAULT_STATS,
   STAT_KEY,
+  isToken,
   access,
   applyAmount,
   calculate,
@@ -123,4 +124,11 @@ test("untrusted metadata is normalized and scene settings override room settings
   assert.equal(readSettings({ offset: -20 }).offset, -20);
   assert.equal(readSettings({ offset: -999 }).offset, -100);
   assert.equal(readSettings({ offset: 999 }).offset, 100);
+});
+
+test("only Character images qualify as statbar tokens", () => {
+ for (const layer of ["CHARACTER","MOUNT","PROP","MAP","ATTACHMENT"]) {
+  assert.equal(isToken({type:"IMAGE",layer,metadata:{}} as Item),layer === "CHARACTER");
+ }
+ assert.equal(isToken({type:"TEXT",layer:"CHARACTER",metadata:{}} as Item),false);
 });

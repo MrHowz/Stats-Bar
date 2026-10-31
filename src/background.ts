@@ -9,7 +9,7 @@ OBR.onReady(() => {
   void OBR.contextMenu
     .create({
       id: `${ID}/edit`,
-      icons: ["CHARACTER", "MOUNT", "PROP"].map((layer) => ({
+      icons: ["CHARACTER"].map((layer) => ({
         icon: "/icon.svg",
         label: "Pixel statbar",
         filter: {
