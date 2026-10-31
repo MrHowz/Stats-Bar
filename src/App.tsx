@@ -540,7 +540,7 @@ export default function App() {
               ? "โหมดทดลอง"
               : "บันทึกในโทเคน"}
         </span>
-        <span>1.2.4</span>
+        <span>1.2.5</span>
       </footer>
       {state.demo &&
         !context &&

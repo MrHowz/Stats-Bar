@@ -4,7 +4,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { barSvg, badgeShape } from "../src/art.ts";
 import { DEFAULT_SETTINGS, DEFAULT_STATS } from "../src/model.ts";
 
-const folder = new URL("../public/bars-v4/", import.meta.url);
+const folder = new URL("../public/bars-v5/", import.meta.url);
 await mkdir(folder, { recursive: true });
 const jobs = [];
 function add(name, svg) {
@@ -35,8 +35,8 @@ for (const count of [4, 5, 10]) {
 for (const char of Object.keys(GLYPHS)) add(`digit-${glyphFile(char)}`, svg(28, 36, glyphSvgBody(char)));
 add("hp", svg(712, 64));
 add("name", svg(928, 56));
-add("temp", svg(112, 112, badgeShape("temp")));
-add("ac", svg(112, 112, badgeShape("ac")));
+add("temp", svg(160, 160, `<g transform="scale(${10/7})">${badgeShape("temp")}</g>`));
+add("ac", svg(160, 160, `<g transform="scale(${10/7})">${badgeShape("ac")}</g>`));
 // Bounded concurrency avoids excessive memory use on Cloudflare builds.
 for (let start = 0; start < jobs.length; start += 16)
   await Promise.all(jobs.slice(start, start + 16).map((job) => job()));

@@ -143,3 +143,7 @@ Slimmer stone frame and larger red HP channel. Numeric glyphs render above badge
 
 ## 1.2.4
 Removed the amount box and Damage/Heal/Temp buttons from both panels. Edit each stat directly with a number or relative expression. Token context menu is named Pixel statbar and contains name, four stat fields and visibility; its bar preview is removed. Main-panel stat fields use 18px numerals and 62px rows for readability.
+
+
+## 1.2.5
+Larger Temp HP heart and AC shield (160px artwork, previously112px). Increased HP numeral size and badge numeral size, with stronger dark outlines. Hosted artwork moved to bars-v5 to avoid stale cached glyphs. Long numbers still shrink to fit.

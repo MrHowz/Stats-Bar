@@ -2,7 +2,7 @@ import { glyphFile } from "./pixel-font.ts";
 import type { Settings, Stats } from "./model.ts";
 
 export const ART_WIDTH = 928;
-export const ART_PATH = "/bars-v4/";
+export const ART_PATH = "/bars-v5/";
 export interface BarPart {
   key: string;
   url: string;
@@ -65,10 +65,10 @@ export function hostedBarParts(
     add(
       "temp",
       "temp",
-      stats.ac > 0 ? 672 : 796,
+      stats.ac > 0 ? 580 : 752,
       badgeY,
-      112,
-      112,
+      160,
+      160,
       String(stats.tempHp),
       Math.min(40, 128 / String(stats.tempHp).length),
       "#f3fff0",
@@ -77,10 +77,10 @@ export function hostedBarParts(
     add(
       "ac",
       "ac",
-      796,
+      752,
       badgeY,
-      112,
-      112,
+      160,
+      160,
       String(stats.ac),
       Math.min(40, 128 / String(stats.ac).length),
       "#f1f6ff",
@@ -101,7 +101,7 @@ export function hostedBarParts(
   for (const label of parts.filter((part) => part.text)) {
     if (!label.text || label.key === "name") continue;
     const text = label.text;
-    const scale = Math.min(44 / 36, (label.width - 28) / (text.length * 28));
+    const scale = Math.min((label.key === "hp" ? 64 : 80) / 36, (label.width - 28) / (text.length * 28));
     [...text].forEach((char, i) => {
       if (char === " ") return;
       parts.push({
@@ -124,6 +124,6 @@ export function hostedBarParts(
 export function barHeight(stats: Stats, hasName: boolean): number {
   return (
     (hasName ? 56 : 0) +
-    (stats.tempHp > 0 || stats.ac > 0 ? (stats.maxHp > 0 ? 284 : 112) : 184)
+    (stats.tempHp > 0 || stats.ac > 0 ? (stats.maxHp > 0 ? 332 : 160) : 184)
   );
 }

@@ -23,7 +23,7 @@ export function glyphSvgBody(char: string): string {
       ),
     )
     .join("");
-  return `<path d="${d}" fill="none" stroke="#10171a" stroke-width="0.7" stroke-linejoin="miter"/><path d="${d}" fill="#fff8ec"/>`;
+  return `<path d="${d}" fill="none" stroke="#10171a" stroke-width="1.2" stroke-linejoin="miter"/><path d="${d}" fill="#fff8ec"/>`;
 }
 export function pixelText(
   text: string,

@@ -170,12 +170,12 @@ test("role changes replace exact stats with segmented health and remove GM-only 
   f.renderer.setReady(true);
   await f.renderer.flushNow();
   assert.ok(
-    f.rendered.at(-1)!.includes(pixelText("18 / 48", 130, 23, 174, 11)),
+    f.rendered.at(-1)!.includes(pixelText("18 / 48", 130, 23, 174, 16)),
   );
   f.setRole("PLAYER");
   await f.renderer.flushNow();
   assert.ok(
-    !f.rendered.at(-1)!.includes(pixelText("18 / 48", 130, 23, 174, 11)),
+    !f.rendered.at(-1)!.includes(pixelText("18 / 48", 130, 23, 174, 16)),
   );
   (f.getItems()[0].metadata[STAT_KEY] as { visibility: string }).visibility =
     "gm";
