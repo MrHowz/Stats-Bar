@@ -140,6 +140,27 @@ function fixture() {
     builder,
   };
 }
+
+test("changing one token's style reuses overlays and removes obsolete flame parts on return",async()=>{
+ const f=fixture();
+ const token=f.getItems()[0];
+ const sibling=structuredClone(token);sibling.id="sibling";
+ f.getItems().push(sibling);
+ const renderer=createRenderer(f.api,f.builder,(s,settings,options)=>hostedBarParts(s,settings,options,"https://example.com"));
+ renderer.setReady(true);await renderer.flushNow();
+ const frame=f.getLocal().find(i=>i.attachedTo==="token"&&(i.metadata[OVERLAY_KEY] as {part:string}).part==="frame")!;
+ (token.metadata[STAT_KEY] as Record<string,unknown>).style="green-flame";
+ await renderer.flushNow();
+ const changed=f.getLocal().find(i=>i.id===frame.id) as Image;
+ assert.match(changed.image.url,/styles\/green-flame-v1\/frame.png$/);
+ assert.ok(f.getLocal().filter(i=>i.attachedTo==="sibling").every(i=>!(i as Image).image.url.includes("green-flame")));
+ assert.ok(f.getLocal().some(i=>i.attachedTo==="token"&&(i.metadata[OVERLAY_KEY] as {part:string}).part==="track"));
+ (token.metadata[STAT_KEY] as Record<string,unknown>).style="pixel";
+ await renderer.flushNow();
+ assert.ok(!f.getLocal().some(i=>(i.metadata[OVERLAY_KEY] as {part:string}).part==="track"));
+ assert.match((f.getLocal().find(i=>i.id===frame.id) as Image).image.url,/bars-v7\/frame.png$/);
+ renderer.setReady(false);
+});
 test("renderer attaches one local bar, reuses it for HP and movement, and cleans up removed tokens", async () => {
   const f = fixture();
   f.renderer.setReady(true);
@@ -237,7 +258,7 @@ test("tiled bars reuse matching pieces, remove obsolete pieces and migrate legac
   assert.ok(!f.getLocal().some((item) => item.id === "legacy-bar"));
   const first = f.getLocal()[0];
   const second = f.getLocal()[1] as Image;
-  assert.equal(second.position.x - first.position.x, 56.25);
+  assert.equal(second.position.x - first.position.x, 37.5);
   assert.equal(second.position.y, first.position.y);
   widths = [116, 116, 116, 116];
   (f.getItems()[0].metadata[STAT_KEY] as { hp: number }).hp--;

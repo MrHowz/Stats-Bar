@@ -5,8 +5,10 @@ export const STAT_KEY = `${ID}/stats`;
 export const SETTINGS_KEY = `${ID}/settings`;
 export const OVERLAY_KEY = `${ID}/overlay`;
 export type Visibility = "public" | "bar" | "gm";
+export type BarStyle = "pixel" | "green-flame";
 export type StatField = "hp" | "maxHp" | "tempHp" | "ac";
 export interface Stats {
+  style: BarStyle;
   hp: number;
   maxHp: number;
   tempHp: number;
@@ -29,6 +31,7 @@ export interface Viewer {
   permissions: Permission[];
 }
 export const DEFAULT_STATS: Stats = {
+  style: "pixel",
   hp: 0,
   maxHp: 0,
   tempHp: 0,
@@ -55,6 +58,7 @@ export function readStats(item: Pick<Item, "metadata">): Stats {
   const s = record(item.metadata[STAT_KEY]);
   const maxHp = numeric(s.maxHp);
   return {
+    style: s.style === "green-flame" ? "green-flame" : "pixel",
     hp: maxHp > 0 ? Math.min(numeric(s.hp), maxHp) : numeric(s.hp),
     maxHp,
     tempHp: numeric(s.tempHp),

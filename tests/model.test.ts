@@ -146,3 +146,16 @@ test("room settings are the only source and legacy segment counts do not affect 
  assert.equal(displayStats(raw,"bar",4).hp,17/50);
  assert.equal(displayStats(raw,"bar",10).hp,17/50);
 });
+
+test("style is per token, defaults safely for old metadata and survives stat edits", () => {
+ const original = item();
+ assert.equal(readStats(original).style,"pixel");
+ const flame = structuredClone(original);
+ (flame.metadata[STAT_KEY] as Record<string,unknown>).style = "green-flame";
+ assert.equal(readStats(flame).style,"green-flame");
+ assert.equal(readStats(original).style,"pixel");
+ assert.equal(editStat(readStats(flame),"hp","-3").style,"green-flame");
+ assert.equal(displayStats(readStats(flame),"bar").style,"green-flame");
+ (flame.metadata[STAT_KEY] as Record<string,unknown>).style = "https://untrusted.example/asset.png";
+ assert.equal(readStats(flame).style,"pixel");
+});

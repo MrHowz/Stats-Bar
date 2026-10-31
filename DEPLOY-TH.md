@@ -19,7 +19,7 @@
 5. กด **Create repository**
 6. ในหน้า repository ว่าง กด **uploading an existing file** ถ้ามีไฟล์อยู่แล้ว ใช้ **Add file → Upload files**
 7. เปิดโฟลเดอร์ที่แตก ZIP เลือกไฟล์ทั้งหมดแล้วลากลงพื้นที่อัปโหลด รอให้เสร็จ
-8. ใส่ข้อความ `Add Pixel Statbar` แล้วกด **Commit changes**
+8. ใส่ข้อความ `Add Stat Bar` แล้วกด **Commit changes**
 9. กลับหน้า Code: ต้องเห็น `package.json`, `src` และ `public` โดยตรง พร้อม branch `main`
 
 [คู่มืออัปโหลดไฟล์ของ GitHub](https://docs.github.com/en/repositories/working-with-files/managing-files/adding-a-file-to-a-repository)
@@ -59,19 +59,19 @@
 https://ชื่อโปรเจกต์ที่ได้รับ.pages.dev/manifest.json
 ```
 
-ใช้ URL จริงจาก Cloudflare แทนข้อความตัวอย่าง เปิดลิงก์แล้วต้องเห็น JSON ที่มี `"name": "Pixel Statbar"` หากเห็นหน้า Preview แทน JSON แสดงว่า path หรือ build output ยังไม่ถูกต้อง
+ใช้ URL จริงจาก Cloudflare แทนข้อความตัวอย่าง เปิดลิงก์แล้วต้องเห็น JSON ที่มี `"name": "Stat Bar"` หากเห็นหน้า Preview แทน JSON แสดงว่า path หรือ build output ยังไม่ถูกต้อง
 
 ## 5. เพิ่ม Extension ใน Owlbear Rodeo
 
 1. เปิดหน้าจัดการ Extensions ของบัญชี Owlbear Rodeo แล้วใช้ตัวเลือกเพิ่ม Custom Extension / Add Extension
 2. วาง URL `...pages.dev/manifest.json` และเพิ่ม Extension
-3. กลับเข้าห้อง เปิดรายการ Extensions ของห้อง และเปิดใช้ **Pixel Statbar**
+3. กลับเข้าห้อง เปิดรายการ Extensions ของห้อง และเปิดใช้ **Stat Bar**
 4. เปิด Scene แล้วเลือกโทเคน Character, Mount หรือ Prop
-5. คลิกขวา → Pixel Statbar หรือกดไอคอนหัวใจในแถบ Extension
+5. คลิกขวา → Stat Bar หรือกดไอคอนหัวใจในแถบ Extension
 6. ตั้ง Max HP เช่น `50` และ HP เช่น `50` แถบจะปรากฏ
 7. ลอง Quick Actions: ใส่ `10` แล้วกด Damage แถบจะลดตาม HP และใช้ Temp HP ก่อน
 
-ถ้า Stat Bubbles ตัวเดิมยังเปิดอยู่ อาจมีแถบสองชุด ให้ปิดตัวเดิมในห้องเมื่อจะใช้ Pixel Statbar ค่าเดิมของ Stat Bubbles ไม่ได้ถูกนำเข้าอัตโนมัติ
+ถ้า Stat Bubbles ตัวเดิมยังเปิดอยู่ อาจมีแถบสองชุด ให้ปิดตัวเดิมในห้องเมื่อจะใช้ Stat Bar ค่าเดิมของ Stat Bubbles ไม่ได้ถูกนำเข้าอัตโนมัติ
 
 ## อัปเดตครั้งต่อไป
 

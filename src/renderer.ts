@@ -194,7 +194,7 @@ export function createRenderer(
           },
           { dpi, offset: { x: 0, y: 0 } },
         )
-          .name("Pixel Statbar")
+          .name("Stat Bar")
           .layer("ATTACHMENT")
           .position(target)
           .scale({
@@ -202,7 +202,7 @@ export function createRenderer(
             y: (width / ART_WIDTH) * (tile.glyphScale ?? 1),
           })
           .zIndex(
-            tile.glyphScale ? 3 : tile.key === "name" ? 2 : tile.key === "fill" ? 1 : 0,
+            tile.zIndex ?? (tile.glyphScale ? 3 : tile.key === "name" ? 2 : tile.key === "fill" ? 1 : 0),
           )
           .textItemType("TEXT")
           .textType("PLAIN")
@@ -271,7 +271,7 @@ export function createRenderer(
       }
     } catch (e) {
       signatures.clear();
-      console.error("Pixel Statbar rendering failed", e);
+      console.error("Stat Bar rendering failed", e);
       const detail =
         e instanceof Error
           ? e.message
@@ -281,7 +281,7 @@ export function createRenderer(
               )
             : String(e);
       await OBR.notification
-        .show(`Pixel Statbar: วาดแถบไม่ได้ — ${detail.slice(0, 180)}`, "ERROR")
+        .show(`Stat Bar: วาดแถบไม่ได้ — ${detail.slice(0, 180)}`, "ERROR")
         .catch(() => {});
     } finally {
       running = false;

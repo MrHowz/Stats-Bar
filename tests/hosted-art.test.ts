@@ -129,3 +129,29 @@ test("health changes scale a fixed red strip without changing artwork URLs",()=>
  assert.equal(half.find(p=>p.key==="fill")!.height,80);
  assert.ok(!empty.some(p=>p.key==="fill"));
 });
+
+test("flame style has transparent frame, live fill, bounded badges and private labels", async () => {
+ const make = (hp:number,numbers=true) => hostedBarParts({...DEFAULT_STATS, style:"green-flame", hp,maxHp:100,tempHp:25,ac:18},DEFAULT_SETTINGS,{numbers,segmented:!numbers},"https://example.com");
+ const full=make(100),half=make(50),empty=make(0);
+ assert.equal(full.find(p=>p.key==="fill")!.url,half.find(p=>p.key==="fill")!.url);
+ assert.equal(half.find(p=>p.key==="fill")!.scaleX,.5);
+ assert.ok(!empty.some(p=>p.key==="fill"));
+ const frame=full.find(p=>p.key==="frame")!;
+ assert.equal(frame.zIndex,2);
+ for(const part of full) {
+  const bytes=await readFile(new URL(`../public${new URL(part.url).pathname}`,import.meta.url));
+  const {data,info}=await sharp(bytes).ensureAlpha().raw().toBuffer({resolveWithObject:true});
+  assert.equal(info.width,part.width);assert.equal(info.height,part.height);
+  assert.ok(part.x>=0 && part.y>=0);
+  assert.ok(part.x+part.width*(part.glyphScale??1)<=928);
+  assert.ok(part.y+part.height*(part.glyphScale??1)<=456);
+  if(part.key==="frame") {
+   assert.equal(data[3],0,"outer background is transparent");
+   assert.equal(data[(170*info.width+500)*4+3],0,"inner health channel is transparent");
+  }
+ }
+ const hidden = hostedBarParts(displayStats({...DEFAULT_STATS,style:"green-flame",hp:33,maxHp:100,tempHp:25,ac:18},"bar"),DEFAULT_SETTINGS,{numbers:false,segmented:true},"https://example.com");
+ assert.deepEqual(hidden.map(p=>p.key),["frame","track","fill"]);
+ assert.equal(hidden.find(p=>p.key==="fill")!.scaleX,.33);
+ assert.ok(hidden.every(p=>!p.text));
+});

@@ -10,8 +10,8 @@ OBR.onReady(() => {
     .create({
       id: `${ID}/edit`,
       icons: ["CHARACTER"].map((layer) => ({
-        icon: "/icon.svg",
-        label: "Pixel statbar",
+        icon: "/stat-bar-icon.svg",
+        label: "Stat Bar",
         filter: {
           every: [
             { key: "type", value: "IMAGE" },
@@ -19,7 +19,7 @@ OBR.onReady(() => {
           ],
         },
       })),
-      embed: { url: "/index.html?context=1", height: 156 },
+      embed: { url: "/index.html?context=1", height: 194 },
     })
     .catch(console.error);
   OBR.scene.onReadyChange(renderer.setReady);

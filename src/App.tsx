@@ -1,4 +1,6 @@
 import {openSettingsWindow} from "./settings-window";
+import {openStylePopover, STYLE_LABELS} from "./StylePopover";
+import BarPreview from "./BarPreview";
 import Switch from "@mui/material/Switch";
 import {openVisibilityPopover, VISIBILITY_LABELS} from "./VisibilityPopover";
 import { Input, Select, Button } from "./controls";
@@ -13,7 +15,6 @@ import {
   readStats,
 } from "./model";
 import type { Settings, StatField, Stats } from "./model";
-import { barSvg, svgUrl } from "./art";
 import {
   clearError,
   getSnapshot,
@@ -48,33 +49,14 @@ function Icon({
     </svg>
   );
 }
-function Bar({
-  stats,
-  settings,
-  numbers = true,
-  segmented = false,
-}: {
-  stats: Stats;
-  settings: Settings;
-  numbers?: boolean;
-  segmented?: boolean;
-}) {
-  return (
-    <img
-      className="pixelbar"
-      src={svgUrl(
-        barSvg(stats, settings, {
-          numbers: numbers && settings.showNumbers,
-          segmented,
-        }),
-      )}
-      alt={
-        numbers
-          ? `HP ${stats.hp}/${stats.maxHp} · Temp HP ${stats.tempHp} · AC ${stats.ac}`
-          : "แถบ HP แบบซ่อนตัวเลข"
-      }
-    />
-  );
+function StyleChoice({item, compact = false}: {item: Item; compact?: boolean}) {
+  const state = useSyncExternalStore(subscribe, getSnapshot);
+  return <Button className={compact ? "style-trigger compact-style-trigger" : "style-trigger"}
+    aria-label={`สไตล์ ${shortName(item)}`} title={`สไตล์: ${STYLE_LABELS[readStats(item).style]}`}
+    disabled={!canEdit(item, state.viewer) || state.busy}
+    onClick={() => safely(openStylePopover(item.id))}>
+    {compact ? "สไตล์" : STYLE_LABELS[readStats(item).style]} ▾
+  </Button>;
 }
 function StatInput({
   item,
@@ -309,6 +291,7 @@ function CompactEditor({ item }: { item: Item }) {
         <span>ประเภท</span>
         <Visibility item={item} />
       </div>
+      <div className="access-line style-line"><span>สไตล์</span><StyleChoice item={item}/></div>
     </section>
   );
 }
@@ -329,8 +312,8 @@ export default function App() {
     <main className={`stat-app ${context ? "context-app" : "table-app"}`}>
       {!context && (
         <header className="app-header">
-          <img src="./icon.svg" alt="" />
-          <strong>Pixel Statbar</strong>
+          <img src="./stat-bar-icon.svg" alt="" />
+          <strong>Stat Bar</strong>
           <span>{state.viewer.role}</span>
           <Button
             aria-label="ตั้งค่า"
@@ -448,7 +431,7 @@ export default function App() {
                               )
                             }
                           />
-                          <Button
+                          <div className="token-info"><Button
                             className="token-name"
                             title={shortName(item)}
                             onClick={() => safely(select([item.id]))}
@@ -456,6 +439,7 @@ export default function App() {
                             <TokenPicture item={item} />
                             <span>{shortName(item)}</span>
                           </Button>
+                          <StyleChoice item={item} compact/></div>
                         </div>
                         <Visibility item={item} compact />
                         {mode === "full" ? (
@@ -490,7 +474,7 @@ export default function App() {
               ? "โหมดทดลอง"
               : "บันทึกในโทเคน"}
         </span>
-        <span>1.3.7</span>
+        <span>1.4.0</span>
       </footer>
       {state.demo &&
         !context &&
@@ -505,14 +489,13 @@ export default function App() {
               return (
                 <div key={item.id}>
                   <small>{shortName(item)}</small>
-                  <Bar
+                  <BarPreview
                     stats={displayStats(
                       readStats(item),
                       mode as "full" | "bar",
                     )}
                     settings={state.settings}
                     numbers={mode === "full"}
-                    segmented={mode === "bar"}
                   />
                 </div>
               );

@@ -13,7 +13,7 @@ export default function SettingsWindow(){
   catch(e){setError(e instanceof Error?e.message:String(e));setClosing(false);}
  };
  return <main className="settings-window">
-  <header className="settings-heading"><div><h2>ตั้งค่า</h2><span>Pixel Statbar</span></div><Button onClick={()=>void close()} disabled={closing} aria-label="ปิดหน้าตั้งค่า">{closing?"กำลังบันทึก…":"ปิด"}</Button></header>
+  <header className="settings-heading"><div><h2>ตั้งค่า</h2><span>Stat Bar</span></div><Button onClick={()=>void close()} disabled={closing} aria-label="ปิดหน้าตั้งค่า">{closing?"กำลังบันทึก…":"ปิด"}</Button></header>
   {error&&<Alert severity="error">{error}</Alert>}
   {!state.ready?<p className="empty">กำลังเชื่อมต่อ…</p>:state.viewer.role!=="GM"?<p className="empty">เฉพาะ GM เท่านั้น</p>:<SettingsPanel/>}
  </main>;
