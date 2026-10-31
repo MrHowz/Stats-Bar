@@ -163,3 +163,7 @@ Settled movement checks no longer unconditionally rewrite local bars. Aligned ba
 
 ## 1.3.5
 Settings now apply to the entire room only. Legacy scene overrides are ignored; room metadata is the sole settings source. Removed the Scene/Room selector and segment-count control. Hidden-number health bars use a continuous normalized HP ratio, with no visible divisions or quantization. Stat values on tokens remain unchanged.
+
+
+## 1.3.6
+Settings open in a separate Owlbear modal (440x540), with MUI controls, card rows and switches. The token list stays in the main action panel. Removed the redundant distance-reset button: a new room already displays offset0, equivalent to the legacy internal -20 placement. Existing manually saved room offsets remain respected. The close button awaits queued room-setting saves before closing.

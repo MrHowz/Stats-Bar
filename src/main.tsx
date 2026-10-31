@@ -1,3 +1,4 @@
+import SettingsWindow from "./SettingsWindow";
 import VisibilityPopover from "./VisibilityPopover";
 import { PluginTheme } from "./PluginTheme";
 import { createRoot } from "react-dom/client";
@@ -9,6 +10,6 @@ document.documentElement.classList.toggle(
 );
 createRoot(document.getElementById("root")!).render(
   <PluginTheme>
-    {new URLSearchParams(location.search).has("visibility") ? <VisibilityPopover /> : <App />}
+    {new URLSearchParams(location.search).has("visibility") ? <VisibilityPopover /> : new URLSearchParams(location.search).has("settings") ? <SettingsWindow/> : <App />}
   </PluginTheme>,
 );

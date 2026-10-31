@@ -1,9 +1,10 @@
+import {openSettingsWindow} from "./settings-window";
+import Switch from "@mui/material/Switch";
 import {openVisibilityPopover, VISIBILITY_LABELS} from "./VisibilityPopover";
 import { Input, Select, Button } from "./controls";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { Item, Image as OBRImage } from "@owlbear-rodeo/sdk";
 import {
-  DEFAULT_SETTINGS,
   access,
   canEdit,
   displayStats,
@@ -159,13 +160,12 @@ function WidthInput({value,onChange}:{value:number;onChange:(value:number)=>void
  useEffect(()=>setDraft(value),[value]);
  return <Input aria-label="ความกว้างแถบ" type="range" min="0.6" max="3" step="0.1" value={draft} onChange={e=>{const next=Number(e.target.value);setDraft(next);onChange(next);}}/>;
 }
-function SettingsPanel() {
+export function SettingsPanel() {
   const state = useSyncExternalStore(subscribe, getSnapshot);
   const s = state.settings;
   const change = (p: Partial<Settings>) => safely(saveSettings(p));
   return (
     <section className="settings">
-      <h2>ตั้งค่าแถบพลัง</h2>
       <p className="muted">ใช้การตั้งค่าเดียวกันทั้งห้อง</p>
       <label className="setting">
         ตำแหน่ง
@@ -195,19 +195,14 @@ function SettingsPanel() {
       ).map(([key, label]) => (
         <label className="setting" key={key}>
           {label}
-          <Input
-            type="checkbox"
+          <Switch
+            inputProps={{"aria-label": label}}
             checked={s[key]}
             onChange={(e) => change({ [key]: e.target.checked })}
           />
         </label>
       ))}
-      <Button
-        className="wide"
-        onClick={() => change({ offset: DEFAULT_SETTINGS.offset })}
-      >
-        ใช้ระยะเริ่มต้น (0)
-      </Button>
+
       <div className="note">
         Max HP มากกว่า 0 จะแสดงแถบอัตโนมัติ · Temp HP และ AC จะแสดงเมื่อมากกว่า
         0
@@ -320,7 +315,6 @@ function CompactEditor({ item }: { item: Item }) {
 export default function App() {
   const state = useSyncExternalStore(subscribe, getSnapshot);
   const context = new URLSearchParams(location.search).has("context");
-  const [settings, setSettings] = useState(false);
   const [search, setSearch] = useState("");
   const [onlySelected, setOnlySelected] = useState(false);
   const visible = state.items.filter((i) => access(i, state.viewer) !== "none");
@@ -339,11 +333,11 @@ export default function App() {
           <strong>Pixel Statbar</strong>
           <span>{state.viewer.role}</span>
           <Button
-            aria-label={settings ? "กลับรายการโทเคน" : "ตั้งค่า"}
+            aria-label="ตั้งค่า"
             disabled={state.viewer.role !== "GM"}
-            onClick={() => setSettings(!settings)}
+            onClick={() => safely(openSettingsWindow())}
           >
-            <Icon kind={settings ? "cross" : "gear"} />
+            <Icon kind="gear" />
           </Button>
         </header>
       )}
@@ -359,8 +353,6 @@ export default function App() {
         <p className="empty">
           {state.ready ? "เปิด Scene เพื่อเริ่มใช้งาน" : "กำลังเชื่อมต่อ…"}
         </p>
-      ) : settings && !context ? (
-        <SettingsPanel />
       ) : (
         <>
           {context ? (
@@ -498,7 +490,7 @@ export default function App() {
               ? "โหมดทดลอง"
               : "บันทึกในโทเคน"}
         </span>
-        <span>1.3.5</span>
+        <span>1.3.6</span>
       </footer>
       {state.demo &&
         !context &&
