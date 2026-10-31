@@ -491,3 +491,5 @@ html:not(.context) #root {
 .context-app .stat-input > span { font-size: 11px; }
 
 .context-app .visibility .MuiNativeSelect-select { font-size: 11px; padding: 6px 24px 6px 8px; }
+
+.context-app .visibility-trigger { font-size:11px; padding:6px; color:inherit; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }

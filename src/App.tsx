@@ -1,3 +1,4 @@
+import {openVisibilityPopover, VISIBILITY_LABELS} from "./VisibilityPopover";
 import { Input, Select, Button } from "./controls";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { Item, Image as OBRImage } from "@owlbear-rodeo/sdk";
@@ -262,10 +263,10 @@ function Visibility({
 }) {
   const state = useSyncExternalStore(subscribe, getSnapshot);
   const s = readStats(item);
+  if (!compact) return <Button className="visibility visibility-trigger" aria-haspopup="menu" aria-label={`การมองเห็น ${shortName(item)}`} disabled={state.viewer.role!=="GM"||state.busy} onClick={()=>safely(openVisibilityPopover(item.id))}>{VISIBILITY_LABELS[s.visibility]} ▾</Button>;
   return (
     <Select
       className="visibility"
-      nativeChoices={!compact}
       shortLabels={
         compact
           ? { public: "เปิดเผย", bar: "ซ่อนเลข", owner: "เจ้าของ", gm: "GM" }
@@ -537,7 +538,7 @@ export default function App() {
               ? "โหมดทดลอง"
               : "บันทึกในโทเคน"}
         </span>
-        <span>1.2.11</span>
+        <span>1.2.12</span>
       </footer>
       {state.demo &&
         !context &&

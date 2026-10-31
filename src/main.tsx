@@ -1,3 +1,4 @@
+import VisibilityPopover from "./VisibilityPopover";
 import { PluginTheme } from "./PluginTheme";
 import { createRoot } from "react-dom/client";
 import App from "./App";
@@ -8,6 +9,6 @@ document.documentElement.classList.toggle(
 );
 createRoot(document.getElementById("root")!).render(
   <PluginTheme>
-    <App />
+    {new URLSearchParams(location.search).has("visibility") ? <VisibilityPopover /> : <App />}
   </PluginTheme>,
 );
