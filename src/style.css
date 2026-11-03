@@ -488,7 +488,7 @@ html:not(.context) #root {
 .settings-window .note { font-size:12px; margin-top:14px; }
 .bar-preview { position:relative; width:100%; }
 .bar-preview img { position:absolute; display:block; user-select:none; pointer-events:none; }
-.bar-preview-pixel img { image-rendering:pixelated; }
+.bar-preview-pixel img { image-rendering:auto; }
 .style-sample { height:90px; display:flex; align-items:center; justify-content:center; }
 .style-sample .bar-preview { width:100%; max-width:270px; }
 .token-info { min-width:0; flex:1; display:flex; flex-direction:column; align-items:flex-start; }

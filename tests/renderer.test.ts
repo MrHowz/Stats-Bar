@@ -151,7 +151,7 @@ test("removed flame overlays migrate to classic while preserving the token stats
  const renderer=createRenderer(f.api,f.builder,(s,settings,options)=>hostedBarParts(s,settings,options,"https://example.com"));
  renderer.setReady(true);await renderer.flushNow();
  const frame=f.getLocal().find(i=>i.id==="old-frame") as Image;
- assert.match(frame.image.url,/bars-v7\/frame.png$/);
+ assert.match(frame.image.url,/bars-v8\/frame.png$/);
  assert.ok(!f.getLocal().some(i=>i.id==="old-track"));
  assert.ok(f.getLocal().every(i=>!(i as Image).image.url.includes("green-flame")));
  assert.deepEqual(token.metadata[STAT_KEY],saved);

@@ -2,7 +2,7 @@ import { glyphFile } from "./pixel-font.ts";
 import type { Settings, Stats } from "./model.ts";
 
 export const ART_WIDTH = 928;
-export const ART_PATH = "/bars-v7/";
+export const ART_PATH = "/bars-v8/";
 export interface BarPart {
   key: string;
   url: string;

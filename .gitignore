@@ -1,0 +1,14 @@
+node_modules/
+dist/
+public/bars-v4/
+
+public/bars-v5/
+.npm-verify-cache/
+
+public/bars-v6/
+
+public/bars-v7/
+
+public/styles/green-flame-v1/
+
+public/bars-v8/
